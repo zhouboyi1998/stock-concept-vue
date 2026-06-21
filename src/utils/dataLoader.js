@@ -4,6 +4,7 @@ import { pinyin } from 'pinyin-pro'
 // 使用 Vite 的 import.meta.glob 动态导入所有 JSON 文件
 const stockModules = import.meta.glob('../data/stock/*.json', { eager: true })
 const conceptModules = import.meta.glob('../data/concept/*.json', { eager: true })
+const groupModules = import.meta.glob('../data/group/*.json', { eager: true })
 
 /**
  * 获取字符串的拼音首字母
@@ -52,6 +53,18 @@ export async function loadConcepts() {
         return extractDataFromModules(conceptModules)
     } catch (error) {
         console.error('Error loading concepts:', error)
+        return []
+    }
+}
+
+/**
+ * 加载所有分组数据
+ */
+export async function loadGroups() {
+    try {
+        return extractDataFromModules(groupModules)
+    } catch (error) {
+        console.error('Error loading groups:', error)
         return []
     }
 }

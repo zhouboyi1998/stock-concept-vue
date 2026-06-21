@@ -27,6 +27,11 @@ const goToStocks = () => {
 const goToConcepts = () => {
     router.push('/concepts')
 }
+
+// 导航到概念分组
+const goToConceptGroup = () => {
+    router.push('/concept-group')
+}
 </script>
 
 <template>
@@ -35,7 +40,7 @@ const goToConcepts = () => {
         <nav class="navbar">
             <div class="nav-brand" @click="goToStocks">股票概念库</div>
             <div class="nav-links">
-                <button v-if="route.path !== '/stocks' && route.path !== '/concepts'" class="back-btn" @click="goBack">
+                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group'" class="back-btn" @click="goBack">
                     返回
                 </button>
                 <button
@@ -49,6 +54,12 @@ const goToConcepts = () => {
                     @click="goToConcepts"
                 >
                     概念列表
+                </button>
+                <button
+                    :class="['nav-btn', { active: route.path === '/concept-group' }]"
+                    @click="goToConceptGroup"
+                >
+                    概念分组
                 </button>
             </div>
         </nav>
