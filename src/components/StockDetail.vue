@@ -48,7 +48,7 @@
             <h2>关联股票（{{ stock.related.length }}）</h2>
             <div class="related-list">
                 <div v-for="(item, index) in stock.related" :key="index" class="related-item">
-                    <span class="related-name">{{ item.name }}</span>
+                    <span class="related-name" @click="goToStockDetailByName(item.name)">{{ item.name }}</span>
                     <span class="related-relation">{{ item.relation }}</span>
                 </div>
             </div>
@@ -95,6 +95,15 @@ watch(
 // 跳转到概念详情页
 const goToConceptDetail = (conceptName) => {
     router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+}
+
+// 根据股票名称跳转到股票详情
+const goToStockDetailByName = async (name) => {
+    const stocks = await loadStocks()
+    const stock = stocks.find(s => s.name === name)
+    if (stock) {
+        router.push(`/stock/${ stock.code }`)
+    }
 }
 </script>
 
