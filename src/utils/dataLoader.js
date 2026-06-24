@@ -100,7 +100,7 @@ export function searchStocks(stocks, keyword) {
 }
 
 /**
- * 搜索概念 (支持按名称、拼音首字母搜索)
+ * 搜索概念 (支持按名称、别名、拼音首字母搜索)
  */
 export function searchConcepts(concepts, keyword) {
     if (!keyword || !keyword.trim()) {
@@ -114,10 +114,29 @@ export function searchConcepts(concepts, keyword) {
             return true
         }
 
+        // 匹配概念别名
+        if (concept.alias && concept.alias.length > 0) {
+            for (const alias of concept.alias) {
+                if (alias.toLowerCase().includes(lowerKeyword)) {
+                    return true
+                }
+            }
+        }
+
         // 匹配概念名称的拼音首字母
         const firstLetters = getFirstLetters(concept.name)
         if (firstLetters.includes(lowerKeyword)) {
             return true
+        }
+
+        // 匹配别名的拼音首字母
+        if (concept.alias && concept.alias.length > 0) {
+            for (const alias of concept.alias) {
+                const aliasFirstLetters = getFirstLetters(alias)
+                if (aliasFirstLetters.includes(lowerKeyword)) {
+                    return true
+                }
+            }
         }
 
         return false
