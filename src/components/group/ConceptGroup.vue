@@ -19,7 +19,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { loadGroups, loadConcepts } from '../utils/dataLoader'
+import { loadGroups, loadConcepts } from '../../utils/dataLoader'
 import RecursiveGroup from './RecursiveGroup.vue'
 
 const groups = ref([])

@@ -1,47 +1,47 @@
 <template>
-    <div class="concept-list">
-        <h1>概念列表</h1>
+    <div class="stock-list">
+        <h1>股票列表</h1>
 
         <!-- 搜索框 -->
         <div class="search-box">
             <input
                 v-model="searchKeyword"
                 type="text"
-                placeholder="搜索概念名称、别名或拼音首字母..."
+                placeholder="搜索股票名称、代码或拼音首字母..."
                 @input="handleSearch"
             />
         </div>
 
-        <!-- 概念列表 -->
-        <div class="concept-items">
+        <!-- 股票列表 -->
+        <div class="stock-items">
             <div
-                v-for="concept in filteredConcepts"
-                :key="concept.name"
-                class="concept-item"
-                @click="goToConceptDetail(concept.name)"
+                v-for="stock in filteredStocks"
+                :key="stock.code"
+                class="stock-item"
+                @click="goToStockDetail(stock.code)"
             >
-                <div class="concept-header">
-                    <span class="concept-name">{{ concept.name }}</span>
-                    <span class="stock-count">{{ concept.stocks?.length || 0 }} 只股票</span>
+                <div class="stock-header">
+                    <span class="stock-name">{{ stock.name }}</span>
+                    <span class="stock-code">{{ stock.code }}</span>
                 </div>
-                <div class="concept-description">
-                    {{ concept.description }}
+                <div class="stock-description">
+                    {{ stock.description }}
                 </div>
-                <div v-if="concept.related && concept.related.length > 0" class="concept-related-list">
-                    <span
-                        v-for="relatedName in concept.related"
-                        :key="relatedName"
-                        class="related-tag"
-                        @click.stop="goToConceptDetail(relatedName)"
-                    >
-                        {{ relatedName }}
-                    </span>
+                <div class="stock-concepts">
+          <span
+              v-for="concept in stock.concepts"
+              :key="concept.name"
+              class="concept-tag"
+              @click.stop="goToConceptDetail(concept.name)"
+          >
+            {{ concept.name }}
+          </span>
                 </div>
             </div>
 
             <!-- 无结果提示 -->
-            <div v-if="filteredConcepts.length === 0" class="no-result">
-                未找到匹配的概念
+            <div v-if="filteredStocks.length === 0" class="no-result">
+                未找到匹配的股票
             </div>
         </div>
     </div>
@@ -50,23 +50,28 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { loadConcepts, searchConcepts } from '../utils/dataLoader'
+import { loadStocks, searchStocks } from '../../utils/dataLoader'
 
 const router = useRouter()
-const concepts = ref([])
+const stocks = ref([])
 const searchKeyword = ref('')
-const filteredConcepts = ref([])
+const filteredStocks = ref([])
 
-// 加载概念数据
+// 加载股票数据
 onMounted(async () => {
-    const data = await loadConcepts()
-    concepts.value = data
-    filteredConcepts.value = data
+    const data = await loadStocks()
+    stocks.value = data
+    filteredStocks.value = data
 })
 
 // 处理搜索
 const handleSearch = () => {
-    filteredConcepts.value = searchConcepts(concepts.value, searchKeyword.value)
+    filteredStocks.value = searchStocks(stocks.value, searchKeyword.value)
+}
+
+// 跳转到股票详情页
+const goToStockDetail = (code) => {
+    router.push(`/stock/${ code }`)
 }
 
 // 跳转到概念详情页
@@ -76,7 +81,7 @@ const goToConceptDetail = (conceptName) => {
 </script>
 
 <style scoped>
-.concept-list {
+.stock-list {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
@@ -102,15 +107,15 @@ h1 {
 }
 
 .search-box input:focus {
-    border-color: #2196f3;
+    border-color: #42b983;
 }
 
-.concept-items {
+.stock-items {
     display: grid;
     gap: 16px;
 }
 
-.concept-item {
+.stock-item {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -119,35 +124,35 @@ h1 {
     transition: all 0.3s;
 }
 
-.concept-item:hover {
+.stock-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
-    border-color: #2196f3;
+    border-color: #42b983;
 }
 
-.concept-header {
+.stock-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
 }
 
-.concept-name {
+.stock-name {
     font-size: 18px;
     font-weight: bold;
-    color: #764ba2;
+    color: #667eea;
 }
 
-.stock-count {
+.stock-code {
     font-size: 14px;
     color: #667eea;
     background: #e8eaf6;
-    padding: 4px 12px;
-    border-radius: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
     font-weight: bold;
 }
 
-.concept-description {
+.stock-description {
     font-size: 14px;
     line-height: 1.6;
     margin-bottom: 12px;
@@ -155,13 +160,13 @@ h1 {
     border-bottom: 1px dashed #e0e0e0;
 }
 
-.concept-related-list {
+.stock-concepts {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.related-tag {
+.concept-tag {
     display: inline-block;
     padding: 4px 12px;
     background: #e8eaf6;
@@ -173,7 +178,7 @@ h1 {
     transition: all 0.2s;
 }
 
-.related-tag:hover {
+.concept-tag:hover {
     background: #667eea;
     color: white;
 }
