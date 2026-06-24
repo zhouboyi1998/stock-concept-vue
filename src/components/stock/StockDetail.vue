@@ -64,7 +64,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getStockByCode, loadStocks } from '../utils/dataLoader'
+import { getStockByCode, loadStocks } from '../../utils/dataLoader'
 
 const route = useRoute()
 const router = useRouter()

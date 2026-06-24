@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import StockList from '../components/StockList.vue'
-import ConceptList from '../components/ConceptList.vue'
-import ConceptGroup from '../components/ConceptGroup.vue'
-import StockDetail from '../components/StockDetail.vue'
-import ConceptDetail from '../components/ConceptDetail.vue'
+import StockList from '../components/stock/StockList.vue'
+import ConceptList from '../components/concept/ConceptList.vue'
+import ConceptGroup from '../components/group/ConceptGroup.vue'
+import StockDetail from '../components/stock/StockDetail.vue'
+import ConceptDetail from '../components/concept/ConceptDetail.vue'
 
 const routes = [
     {
