@@ -7,7 +7,7 @@
             <input
                 v-model="searchKeyword"
                 type="text"
-                placeholder="搜索概念名称或拼音首字母..."
+                placeholder="搜索概念名称、别名或拼音首字母..."
                 @input="handleSearch"
             />
         </div>

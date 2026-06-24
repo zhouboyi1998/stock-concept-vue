@@ -2,7 +2,12 @@
     <div class="concept-detail" v-if="concept">
         <!-- 概念基本信息 -->
         <div class="concept-info">
-            <h1>{{ concept.name }}</h1>
+            <h1>
+                {{ concept.name }}
+                <span v-if="concept.alias && concept.alias.length > 0" class="concept-alias">
+                    （{{ concept.alias.join('、') }}）
+                </span>
+            </h1>
             <div class="concept-description">{{ concept.description }}</div>
 
             <!-- 备注信息 -->
@@ -187,6 +192,15 @@ const goToStockDetail = (code) => {
     color: #764ba2;
     margin-bottom: 16px;
     font-size: 32px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.concept-alias {
+    font-size: 32px;
+    font-weight: bold;
 }
 
 .concept-description {
