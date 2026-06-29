@@ -3,7 +3,15 @@
         <!-- 股票基本信息 -->
         <div class="stock-info">
             <h1>{{ stock.name }}</h1>
-            <div class="stock-code">{{ stock.code }}</div>
+            <div class="stock-codes">
+                <span
+                    v-for="(code, index) in (Array.isArray(stock.code) ? stock.code : [stock.code])"
+                    :key="index"
+                    class="stock-code"
+                >
+                    {{ code }}
+                </span>
+            </div>
             <div class="stock-description">{{ stock.description }}</div>
 
             <!-- 备注信息 -->
@@ -64,30 +72,34 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getStockByCode, loadStocks } from '../../utils/dataLoader'
+import { getStockByName, loadStocks } from '../../utils/dataLoader'
+
+// 组件名称，用于 keep-alive 缓存
+const __name = 'StockDetail'
 
 const route = useRoute()
 const router = useRouter()
 const stock = ref(null)
 
 // 加载股票详情的函数
-const loadStockDetail = async (code) => {
+const loadStockDetail = async (name) => {
     const stocks = await loadStocks()
-    stock.value = getStockByCode(stocks, code)
+    stock.value = getStockByName(stocks, name)
 }
 
 // 首次挂载时加载数据
 onMounted(() => {
-    const code = route.params.code
-    loadStockDetail(code)
+    const name = decodeURIComponent(route.params.name)
+    loadStockDetail(name)
 })
 
 // 监听路由参数变化, 重新加载数据
 watch(
-    () => route.params.code,
-    (newCode) => {
-        if (newCode) {
-            loadStockDetail(newCode)
+    () => route.params.name,
+    (newName) => {
+        if (newName) {
+            const name = decodeURIComponent(newName)
+            loadStockDetail(name)
         }
     }
 )
@@ -98,12 +110,8 @@ const goToConceptDetail = (conceptName) => {
 }
 
 // 根据股票名称跳转到股票详情
-const goToStockDetailByName = async (name) => {
-    const stocks = await loadStocks()
-    const stock = stocks.find(s => s.name === name)
-    if (stock) {
-        router.push(`/stock/${ stock.code }`)
-    }
+const goToStockDetailByName = (name) => {
+    router.push(`/stock/${ encodeURIComponent(name) }`)
 }
 </script>
 
@@ -137,6 +145,13 @@ const goToStockDetailByName = async (name) => {
     border-radius: 8px;
     margin-bottom: 16px;
     font-weight: bold;
+}
+
+.stock-codes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
 }
 
 .stock-description {

@@ -27,13 +27,21 @@
             <div class="stock-list">
                 <div
                     v-for="stock in relatedStocks"
-                    :key="stock.code"
+                    :key="stock.name"
                     class="stock-item"
-                    @click="goToStockDetail(stock.code)"
+                    @click="goToStockDetail(stock.name)"
                 >
                     <div class="stock-header">
                         <span class="stock-name">{{ stock.name }}</span>
-                        <span class="stock-code">{{ stock.code }}</span>
+                        <div class="stock-codes">
+                            <span
+                                v-for="(code, index) in (Array.isArray(stock.code) ? stock.code : [stock.code])"
+                                :key="index"
+                                class="stock-code"
+                            >
+                                {{ code }}
+                            </span>
+                        </div>
                     </div>
                     <div class="stock-reasons">
                         <!-- 概念JSON中的入选理由 -->
@@ -100,6 +108,9 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getConceptByName, getConceptStockDetails, getRelatedConcepts, loadConcepts, loadStocks } from '../../utils/dataLoader'
 
+// 组件名称，用于 keep-alive 缓存
+const __name = 'ConceptDetail'
+
 const route = useRoute()
 const router = useRouter()
 const concept = ref(null)
@@ -161,15 +172,12 @@ const getStockNameByCode = (code) => {
 
 // 根据股票名称跳转到股票详情
 const goToStockDetailByName = (name) => {
-    const stock = stocks.value.find(s => s.name === name)
-    if (stock) {
-        router.push(`/stock/${ stock.code }`)
-    }
+    router.push(`/stock/${ encodeURIComponent(name) }`)
 }
 
 // 跳转到股票详情
-const goToStockDetail = (code) => {
-    router.push(`/stock/${ code }`)
+const goToStockDetail = (name) => {
+    router.push(`/stock/${ encodeURIComponent(name) }`)
 }
 </script>
 
@@ -369,6 +377,12 @@ const goToStockDetail = (code) => {
     padding: 4px 8px;
     border-radius: 4px;
     font-weight: bold;
+}
+
+.stock-codes {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .stock-reasons {
