@@ -16,13 +16,21 @@
         <div class="stock-items">
             <div
                 v-for="stock in filteredStocks"
-                :key="stock.code"
+                :key="stock.name"
                 class="stock-item"
-                @click="goToStockDetail(stock.code)"
+                @click="goToStockDetail(stock.name)"
             >
                 <div class="stock-header">
                     <span class="stock-name">{{ stock.name }}</span>
-                    <span class="stock-code">{{ stock.code }}</span>
+                    <div class="stock-codes">
+                        <span
+                            v-for="(code, index) in (Array.isArray(stock.code) ? stock.code : [stock.code])"
+                            :key="index"
+                            class="stock-code"
+                        >
+                            {{ code }}
+                        </span>
+                    </div>
                 </div>
                 <div class="stock-description">
                     {{ stock.description }}
@@ -70,8 +78,8 @@ const handleSearch = () => {
 }
 
 // 跳转到股票详情页
-const goToStockDetail = (code) => {
-    router.push(`/stock/${ code }`)
+const goToStockDetail = (name) => {
+    router.push(`/stock/${ encodeURIComponent(name) }`)
 }
 
 // 跳转到概念详情页
@@ -150,6 +158,12 @@ h1 {
     padding: 4px 8px;
     border-radius: 4px;
     font-weight: bold;
+}
+
+.stock-codes {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .stock-description {

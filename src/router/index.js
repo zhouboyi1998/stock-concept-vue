@@ -16,7 +16,7 @@ const routes = [
         component: StockList
     },
     {
-        path: '/stock/:code',
+        path: '/stock/:name',
         name: 'StockDetail',
         component: StockDetail
     },

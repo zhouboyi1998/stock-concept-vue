@@ -84,9 +84,12 @@ export function searchStocks(stocks, keyword) {
             return true
         }
 
-        // 匹配股票代码
-        if (stock.code.toLowerCase().includes(lowerKeyword)) {
-            return true
+        // 匹配股票代码 (支持数组)
+        const codes = Array.isArray(stock.code) ? stock.code : [stock.code]
+        for (const code of codes) {
+            if (code.toLowerCase().includes(lowerKeyword)) {
+                return true
+            }
         }
 
         // 匹配股票名称的拼音首字母
@@ -109,34 +112,42 @@ export function searchConcepts(concepts, keyword) {
 
     const lowerKeyword = keyword.toLowerCase().trim()
     return concepts.filter(concept => {
-        // 匹配概念名称
-        if (concept.name.toLowerCase().includes(lowerKeyword)) {
-            return true
-        }
+        try {
+            // 匹配概念名称
+            if (concept.name && concept.name.toLowerCase().includes(lowerKeyword)) {
+                return true
+            }
 
-        // 匹配概念别名
-        if (concept.alias && concept.alias.length > 0) {
-            for (const alias of concept.alias) {
-                if (alias.toLowerCase().includes(lowerKeyword)) {
+            // 匹配概念别名
+            if (concept.alias && Array.isArray(concept.alias) && concept.alias.length > 0) {
+                for (const alias of concept.alias) {
+                    if (alias && alias.toLowerCase().includes(lowerKeyword)) {
+                        return true
+                    }
+                }
+            }
+
+            // 匹配概念名称的拼音首字母
+            if (concept.name) {
+                const firstLetters = getFirstLetters(concept.name)
+                if (firstLetters.includes(lowerKeyword)) {
                     return true
                 }
             }
-        }
 
-        // 匹配概念名称的拼音首字母
-        const firstLetters = getFirstLetters(concept.name)
-        if (firstLetters.includes(lowerKeyword)) {
-            return true
-        }
-
-        // 匹配别名的拼音首字母
-        if (concept.alias && concept.alias.length > 0) {
-            for (const alias of concept.alias) {
-                const aliasFirstLetters = getFirstLetters(alias)
-                if (aliasFirstLetters.includes(lowerKeyword)) {
-                    return true
+            // 匹配别名的拼音首字母
+            if (concept.alias && Array.isArray(concept.alias) && concept.alias.length > 0) {
+                for (const alias of concept.alias) {
+                    if (alias) {
+                        const aliasFirstLetters = getFirstLetters(alias)
+                        if (aliasFirstLetters.includes(lowerKeyword)) {
+                            return true
+                        }
+                    }
                 }
             }
+        } catch (error) {
+            console.error('Error searching concept:', concept.name, error)
         }
 
         return false
@@ -147,7 +158,10 @@ export function searchConcepts(concepts, keyword) {
  * 根据股票代码获取股票信息
  */
 export function getStockByCode(stocks, code) {
-    return stocks.find(stock => stock.code === code)
+    return stocks.find(stock => {
+        const codes = Array.isArray(stock.code) ? stock.code : [stock.code]
+        return codes.includes(code)
+    })
 }
 
 /**
