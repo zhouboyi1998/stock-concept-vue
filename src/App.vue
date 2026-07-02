@@ -1,17 +1,23 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, watch, computed } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { ElScrollbar } from 'element-plus'
+import { useTabStore } from './stores/tabStore'
 
 const router = useRouter()
 const route = useRoute()
+const tabStore = useTabStore()
 
-// 标签页列表
-const tabs = ref([])
-// 当前激活的标签页 key
-const currentTabKey = ref('')
-// 是否有标签页显示
-const hasTabs = computed(() => tabs.value.length > 0)
+// 使用 store 中的状态 (自动持久化)
+const tabs = computed(() => tabStore.tabs)
+const currentTabKey = computed({
+    get: () => tabStore.currentTabKey,
+    set: (value) => {
+        tabStore.currentTabKey = value
+    }
+})
+const hasTabs = computed(() => tabStore.tabs.length > 0)
+const scrollPositions = computed(() => tabStore.scrollPositions)
 
 // 生成标签页的唯一 key
 const getTabKey = (route) => {
@@ -40,47 +46,70 @@ const addTab = (route) => {
     const key = getTabKey(route)
 
     // 检查是否已存在
-    const existingTab = tabs.value.find(tab => tab.key === key)
+    const existingTab = tabStore.tabs.find(tab => tab.key === key)
     if (!existingTab) {
-        tabs.value.push({
+        tabStore.tabs.push({
             key,
             title: getTabTitle(route),
             path: route.path,
             fullPath: route.fullPath
         })
+        // 为新标签页初始化滚动位置
+        if (!tabStore.scrollPositions[key]) {
+            tabStore.scrollPositions[key] = 0
+        }
     }
 
-    currentTabKey.value = key
+    tabStore.currentTabKey = key
 }
 
 // 关闭标签页
 const closeTab = (tab) => {
-    const index = tabs.value.findIndex(t => t.key === tab.key)
+    const index = tabStore.tabs.findIndex(t => t.key === tab.key)
     if (index === -1) return
 
     // 移除标签页
-    tabs.value.splice(index, 1)
+    tabStore.tabs.splice(index, 1)
+    // 清除该标签页的滚动位置记录
+    delete tabStore.scrollPositions[tab.key]
 
     // 如果关闭的是当前标签页，切换到其他标签页
-    if (tab.key === currentTabKey.value) {
-        if (tabs.value.length > 0) {
+    if (tab.key === tabStore.currentTabKey) {
+        if (tabStore.tabs.length > 0) {
             // 切换到前一个或后一个标签页
             const newIndex = Math.max(0, index - 1)
-            const newTab = tabs.value[newIndex]
-            currentTabKey.value = newTab.key
+            const newTab = tabStore.tabs[newIndex]
+            tabStore.currentTabKey = newTab.key
             router.push(newTab.path)
         } else {
             // 没有标签页了，跳转到股票列表
-            currentTabKey.value = ''
+            tabStore.currentTabKey = ''
             router.push('/stocks')
         }
     }
 }
 
 // 切换标签页
-const switchTab = (tab) => {
-    currentTabKey.value = tab.key
-    router.push(tab.path)
+const switchTab = async (tab) => {
+    // 保存当前标签页的滚动位置
+    if (tabStore.currentTabKey) {
+        const mainContent = document.querySelector('.main-content')
+        if (mainContent) {
+            tabStore.scrollPositions[tabStore.currentTabKey] = mainContent.scrollTop
+        }
+    }
+
+    // 切换到新标签页
+    tabStore.currentTabKey = tab.key
+    await router.push(tab.path)
+
+    // 恢复新标签页的滚动位置
+    setTimeout(() => {
+        const mainContent = document.querySelector('.main-content')
+        if (mainContent && tabStore.scrollPositions[tab.key]) {
+            mainContent.scrollTop = tabStore.scrollPositions[tab.key]
+        }
+    }, 50)
 }
 
 // 监听路由变化，自动添加标签页
@@ -117,7 +146,7 @@ const goToConceptGroup = () => {
 
 // 计算需要缓存的路由
 const cachedViews = computed(() => {
-    return tabs.value.map(tab => {
+    return tabStore.tabs.map(tab => {
         if (tab.key.startsWith('stock_')) {
             return 'StockDetail'
         } else if (tab.key.startsWith('concept_')) {
