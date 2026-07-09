@@ -35,11 +35,11 @@
                         <span class="stock-name">{{ stock.name }}</span>
                         <div class="stock-codes">
                             <span
-                                v-for="(code, index) in (Array.isArray(stock.code) ? stock.code : [stock.code])"
+                                v-for="(codeObj, index) in (stock.codes || [])"
                                 :key="index"
                                 class="stock-code"
                             >
-                                {{ code }}
+                                {{ codeObj.region }}:{{ codeObj.code }}
                             </span>
                         </div>
                     </div>

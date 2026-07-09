@@ -80,22 +80,27 @@ export function searchStocks(stocks, keyword) {
     const lowerKeyword = keyword.toLowerCase().trim()
     return stocks.filter(stock => {
         // 匹配股票名称
-        if (stock.name.toLowerCase().includes(lowerKeyword)) {
+        if (stock.name && stock.name.toLowerCase().includes(lowerKeyword)) {
             return true
         }
 
         // 匹配股票代码 (支持数组)
-        const codes = Array.isArray(stock.code) ? stock.code : [stock.code]
-        for (const code of codes) {
-            if (code.toLowerCase().includes(lowerKeyword)) {
-                return true
+        const codes = stock.codes || []
+        for (const codeObj of codes) {
+            if (codeObj.region && codeObj.code) {
+                const codeStr = `${ codeObj.region }:${ codeObj.code }`.toLowerCase()
+                if (codeStr.includes(lowerKeyword)) {
+                    return true
+                }
             }
         }
 
         // 匹配股票名称的拼音首字母
-        const firstLetters = getFirstLetters(stock.name)
-        if (firstLetters.includes(lowerKeyword)) {
-            return true
+        if (stock.name) {
+            const firstLetters = getFirstLetters(stock.name)
+            if (firstLetters && firstLetters.includes(lowerKeyword)) {
+                return true
+            }
         }
 
         return false
@@ -159,8 +164,8 @@ export function searchConcepts(concepts, keyword) {
  */
 export function getStockByCode(stocks, code) {
     return stocks.find(stock => {
-        const codes = Array.isArray(stock.code) ? stock.code : [stock.code]
-        return codes.includes(code)
+        const codes = stock.codes || []
+        return codes.some(codeObj => codeObj.code === code)
     })
 }
 
