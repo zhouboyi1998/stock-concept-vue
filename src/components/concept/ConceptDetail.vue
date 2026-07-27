@@ -69,6 +69,40 @@
             </div>
         </div>
 
+        <!-- 关联期货列表 -->
+        <div v-if="concept.futures && concept.futures.length > 0" class="related-futures">
+            <h2>关联期货（{{ concept.futures.length }}）</h2>
+            <div class="futures-list">
+                <div
+                    v-for="(future, index) in concept.futures"
+                    :key="index"
+                    class="future-item"
+                >
+                    <div class="future-header">
+                        <span class="future-name">{{ future.name }}</span>
+                        <span class="future-code">{{ future.region }}:{{ future.code }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关联现货列表 -->
+        <div v-if="concept.spot && concept.spot.length > 0" class="related-spot">
+            <h2>关联现货（{{ concept.spot.length }}）</h2>
+            <div class="spot-list">
+                <div
+                    v-for="(spotItem, index) in concept.spot"
+                    :key="index"
+                    class="spot-item"
+                >
+                    <div class="spot-header">
+                        <span class="spot-name">{{ spotItem.name }}</span>
+                        <span class="spot-code">{{ spotItem.region }}:{{ spotItem.code }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 关联概念列表 -->
         <div v-if="relatedConcepts.length > 0" class="related-concepts-section">
             <h2>关联概念（{{ relatedConcepts.length }}）</h2>
@@ -331,12 +365,113 @@ const goToStockDetail = (name) => {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 24px;
+    margin-bottom: 24px;
 }
 
 .related-stocks h2 {
     color: #333;
     margin-bottom: 16px;
     font-size: 24px;
+}
+
+/* 关联期货 */
+.related-futures {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.related-futures h2 {
+    color: #333;
+    margin-bottom: 16px;
+    font-size: 24px;
+}
+
+.futures-list {
+    display: grid;
+    gap: 12px;
+}
+
+.future-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.future-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.future-name {
+    color: #667eea;
+    font-weight: bold;
+}
+
+.future-code {
+    color: #667eea;
+    background: #e8eaf6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* 关联现货 */
+.related-spot {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.related-spot h2 {
+    color: #333;
+    margin-bottom: 16px;
+    font-size: 24px;
+}
+
+.spot-list {
+    display: grid;
+    gap: 12px;
+}
+
+.spot-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.spot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.spot-name {
+    color: #667eea;
+    font-weight: bold;
+}
+
+.spot-code {
+    color: #667eea;
+    background: #e8eaf6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 .stock-list {
