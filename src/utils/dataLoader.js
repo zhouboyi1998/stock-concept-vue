@@ -201,22 +201,34 @@ export function getConceptStockDetails(concepts, stocks, conceptName) {
             if (!stock) {
                 stock = getStockByCode(stocks, stockName)
             }
-            if (!stock) return null
 
-            // 概念JSON中给股票的入选理由
+            // 概念中给股票的入选理由
             const conceptReasons = stockItem.reasons || []
 
-            // 股票JSON中自己写的入选理由
-            const conceptInfo = stock.concepts?.find(c => c.name === conceptName)
-            const stockReasons = conceptInfo?.reasons || []
+            if (stock) {
+                // 找到了股票详细信息
+                const conceptInfo = stock.concepts?.find(c => c.name === conceptName)
+                const stockReasons = conceptInfo?.reasons || []
 
-            return {
-                ...stock,
-                conceptReasons: conceptReasons,
-                stockReasons: stockReasons
+                return {
+                    ...stock,
+                    conceptReasons: conceptReasons,
+                    stockReasons: stockReasons
+                }
+            } else {
+                // 没找到股票详细信息, 只返回概念中的股票信息
+                return {
+                    name: stockName,
+                    codes: [],
+                    description: '',
+                    concepts: [],
+                    remarks: [],
+                    related: [],
+                    conceptReasons: conceptReasons,
+                    stockReasons: []
+                }
             }
         })
-        .filter(stock => stock !== null)
 }
 
 /**
