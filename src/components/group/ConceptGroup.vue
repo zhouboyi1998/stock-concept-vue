@@ -8,6 +8,7 @@
                 :key="group.name"
                 :group="group"
                 :depth="0"
+                :concept-names="conceptNames"
             />
         </div>
 
@@ -24,6 +25,8 @@ import RecursiveGroup from './RecursiveGroup.vue'
 
 const groups = ref([])
 const concepts = ref([])
+// 存储所有存在的概念名称集合
+const conceptNames = ref(new Set())
 
 // 排序函数: 有 sort 字段的按 sort 从小到大, 没有 sort 的放到后面
 const sortBySortField = (items) => {
@@ -83,6 +86,9 @@ onMounted(async () => {
 
     groups.value = sortedGroups
     concepts.value = conceptsData
+
+    // 将所有概念名称存入 Set, 用于快速查找
+    conceptNames.value = new Set(conceptsData.map(concept => concept.name))
 })
 </script>
 

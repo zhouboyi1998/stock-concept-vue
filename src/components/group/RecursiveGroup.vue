@@ -17,7 +17,7 @@
                 <div
                     v-for="conceptName in group.concept"
                     :key="conceptName"
-                    class="concept-item"
+                    :class="['concept-item', { 'disabled': !isConceptExists(conceptName) }]"
                     @click.stop="goToConcept(conceptName)"
                 >
                     {{ conceptName }}
@@ -33,6 +33,7 @@
                     :key="subgroup.name"
                     :group="subgroup"
                     :depth="depth + 1"
+                    :concept-names="conceptNames"
                     @navigate="handleNavigate"
                 />
             </div>
@@ -41,8 +42,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { loadConcepts } from '../../utils/dataLoader'
 
 const props = defineProps({
     group: {
@@ -52,6 +54,11 @@ const props = defineProps({
     depth: {
         type: Number,
         default: 0
+    },
+    // 接收父组件传递的概念名称集合
+    conceptNames: {
+        type: Set,
+        default: () => new Set()
     }
 })
 
@@ -71,8 +78,18 @@ const handleToggle = () => {
     isExpanded.value = !isExpanded.value
 }
 
+// 判断概念是否存在
+const isConceptExists = (conceptName) => {
+    return props.conceptNames.has(conceptName)
+}
+
 // 跳转到概念
 const goToConcept = (conceptName) => {
+    // 如果概念不存在, 不允许跳转
+    if (!isConceptExists(conceptName)) {
+        return
+    }
+
     router.push(`/concept/${ encodeURIComponent(conceptName) }`)
     emit('navigate')
 }
@@ -195,6 +212,21 @@ const handleNavigate = () => {
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);
+}
+
+/* 概念不存在时的禁用样式 */
+.concept-item.disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.concept-item.disabled:hover {
+    background: #f0f0f0;
+    color: #999;
+    transform: none;
+    box-shadow: none;
 }
 
 /* 一级分组的概念按钮样式 */
