@@ -108,35 +108,19 @@ const handleNavigate = () => {
     margin-bottom: 12px;
 }
 
-/* 一级分组特殊样式 */
-.root-group {
-    background: white;
-    margin-bottom: 16px;
-}
-
-.root-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white;
-}
-
-.root-header:hover {
-    opacity: 0.95;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-
 .group-header-row {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
-    background: #f5f5f5;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
     min-height: 60px;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .group-header-row:hover {
-    background: #e8eaf6;
+    opacity: 0.95;
 }
 
 /* 没有子分组的标题行不可点击 */
@@ -144,15 +128,9 @@ const handleNavigate = () => {
     cursor: default !important;
 }
 
-/* 非一级分组且没有子分组时, 悬停背景不变 */
-.group-header-row.no-children:hover {
-    background: #f5f5f5 !important;
-}
-
-/* 一级分组且没有子分组时, 悬停只改变透明度, 不改变背景 */
-.root-header.no-children:hover {
-    opacity: 0.95 !important;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+/* 没有子分组时, 悬停背景不变 */
+.no-children:hover {
+    opacity: 1 !important;
 }
 
 .group-header-left {
@@ -227,16 +205,5 @@ const handleNavigate = () => {
     color: #999;
     transform: none;
     box-shadow: none;
-}
-
-/* 一级分组的概念按钮样式 */
-.root-header .concept-item {
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
-}
-
-.root-header .concept-item:hover {
-    background: white;
-    color: #764ba2;
 }
 </style>
