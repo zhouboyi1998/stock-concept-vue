@@ -155,6 +155,14 @@ const cachedViews = computed(() => {
         return null
     }).filter(Boolean)
 })
+
+// 清空所有标签页
+const clearAllTabs = () => {
+    tabStore.tabs = []
+    tabStore.currentTabKey = ''
+    tabStore.scrollPositions = {}
+    router.push('/stocks')
+}
 </script>
 
 <template>
@@ -204,6 +212,10 @@ const cachedViews = computed(() => {
             <aside class="tab-sidebar">
                 <ElScrollbar class="tab-scrollbar">
                     <div class="tab-list">
+                        <!-- 清空按钮 -->
+                        <div v-if="tabs.length > 0" class="clear-all-btn" @click="clearAllTabs">
+                            <span class="clear-all-text">清 空</span>
+                        </div>
                         <div
                             v-for="tab in tabs"
                             :key="tab.key"
@@ -211,7 +223,7 @@ const cachedViews = computed(() => {
                             @click="switchTab(tab)"
                         >
                             <span class="tab-title">{{ tab.title }}</span>
-                            <span class="tab-close" @click.stop="closeTab(tab)">×</span>
+                            <span class="tab-close" @click.stop="closeTab(tab)">✖</span>
                         </div>
                         <div v-if="tabs.length === 0" class="empty-tip">
                             暂无打开的页面
@@ -377,6 +389,58 @@ body {
     min-height: 100%;
 }
 
+/* 清空所有标签按钮 */
+.clear-all-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    background: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    min-height: 40px;
+    color: white;
+    font-weight: bold;
+    position: relative;
+    overflow: hidden;
+}
+
+.clear-all-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: none;
+}
+
+.clear-all-btn:hover::before {
+    animation: wave-flow 1.5s infinite;
+}
+
+@keyframes wave-flow {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.clear-all-text {
+    text-align: center;
+}
+
 .empty-tip {
     text-align: center;
     color: #999;
@@ -432,11 +496,10 @@ body {
 }
 
 .tab-item:not(.active) .tab-close:hover {
-    background: #ff4444;
-    color: white;
+    color: #ff6b6b;
 }
 
 .tab-item.active .tab-close:hover {
-    background: rgba(255, 255, 255, 0.3);
+    color: #ff6b6b;
 }
 </style>
