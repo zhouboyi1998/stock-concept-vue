@@ -139,9 +139,14 @@ const goToConcepts = () => {
     router.push('/concepts')
 }
 
-// 导航到概念分组
+// 导航到板块列表 (概念分组)
 const goToConceptGroup = () => {
     router.push('/concept-group')
+}
+
+// 导航到统计信息
+const goToStatistics = () => {
+    router.push('/statistics')
 }
 
 // 计算需要缓存的路由
@@ -171,7 +176,7 @@ const clearAllTabs = () => {
         <nav class="navbar">
             <div class="nav-brand" @click="goToStocks">股票概念库</div>
             <div class="nav-links">
-                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group'" class="back-btn" @click="goBack">
+                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group' && route.path !== '/statistics'" class="back-btn" @click="goBack">
                     返回
                 </button>
                 <button
@@ -190,7 +195,13 @@ const clearAllTabs = () => {
                     :class="['nav-btn', { active: route.path === '/concept-group' }]"
                     @click="goToConceptGroup"
                 >
-                    概念分组
+                    板块列表
+                </button>
+                <button
+                    :class="['nav-btn', { active: route.path === '/statistics' }]"
+                    @click="goToStatistics"
+                >
+                    统计信息
                 </button>
             </div>
         </nav>

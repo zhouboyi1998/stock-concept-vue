@@ -1,6 +1,6 @@
 <template>
     <div class="concept-group">
-        <h1 class="page-title">概念分组</h1>
+        <h1 class="page-title">板块列表</h1>
 
         <div v-if="groups.length > 0" class="tree-container">
             <RecursiveGroup
