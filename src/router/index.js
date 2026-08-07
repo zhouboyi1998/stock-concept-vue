@@ -3,13 +3,19 @@ import StockList from '../components/stock/StockList.vue'
 import ConceptList from '../components/concept/ConceptList.vue'
 import ConceptGroup from '../components/group/ConceptGroup.vue'
 import Statistics from '../components/statistics/Statistics.vue'
+import EarthGlobe from '../components/globe/EarthGlobe.vue'
 import StockDetail from '../components/stock/StockDetail.vue'
 import ConceptDetail from '../components/concept/ConceptDetail.vue'
 
 const routes = [
     {
         path: '/',
-        redirect: '/stocks'
+        redirect: '/home'
+    },
+    {
+        path: '/home',
+        name: 'Home',
+        component: EarthGlobe
     },
     {
         path: '/stocks',

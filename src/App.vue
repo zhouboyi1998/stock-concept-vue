@@ -149,6 +149,11 @@ const goToStatistics = () => {
     router.push('/statistics')
 }
 
+// 导航到首页 (地球仪)
+const goToHome = () => {
+    router.push('/home')
+}
+
 // 计算需要缓存的路由
 const cachedViews = computed(() => {
     return tabStore.tabs.map(tab => {
@@ -166,7 +171,6 @@ const clearAllTabs = () => {
     tabStore.tabs = []
     tabStore.currentTabKey = ''
     tabStore.scrollPositions = {}
-    router.push('/stocks')
 }
 </script>
 
@@ -174,9 +178,9 @@ const clearAllTabs = () => {
     <div id="app">
         <!-- 导航栏 -->
         <nav class="navbar">
-            <div class="nav-brand" @click="goToStocks">股票概念库</div>
+            <div class="nav-brand" @click="goToHome">股票概念库</div>
             <div class="nav-links">
-                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group' && route.path !== '/statistics'" class="back-btn" @click="goBack">
+                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group' && route.path !== '/statistics' && route.path !== '/home'" class="back-btn" @click="goBack">
                     返回
                 </button>
                 <button
@@ -207,7 +211,7 @@ const clearAllTabs = () => {
         </nav>
 
         <!-- 主容器 -->
-        <div class="main-container">
+        <div :class="['main-container', { 'home-page': route.path === '/home' }]">
             <!-- 路由视图 (使用 Element Plus 滚动条) -->
             <ElScrollbar class="content-scrollbar">
                 <main class="main-content">
@@ -220,7 +224,7 @@ const clearAllTabs = () => {
             </ElScrollbar>
 
             <!-- 右侧标签页栏 -->
-            <aside class="tab-sidebar">
+            <aside v-if="route.path !== '/home'" class="tab-sidebar">
                 <ElScrollbar class="tab-scrollbar">
                     <div class="tab-list">
                         <!-- 清空按钮 -->
@@ -354,6 +358,20 @@ body {
     height: calc(100vh - 70px);
     margin-top: 70px;
     overflow: hidden;
+}
+
+/* 首页样式 */
+.main-container.home-page {
+    margin-top: 70px;
+    height: calc(100vh - 70px);
+}
+
+.main-container.home-page .content-scrollbar {
+    padding: 0;
+}
+
+.main-container.home-page .main-content {
+    padding: 0;
 }
 
 /* 内容区滚动条 */
