@@ -14,10 +14,10 @@
 
             <!-- 统计图表 -->
             <div class="charts-grid">
+                <!-- 板块分布 -->
+                <GroupChart :data="groupData"/>
                 <!-- 地区分布 -->
                 <RegionChart :data="regionData"/>
-                <!-- 板块统计 -->
-                <GroupChart :data="groupData"/>
             </div>
 
             <!-- 热门概念 -->
@@ -88,15 +88,9 @@ onMounted(async () => {
 }
 
 .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
     margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
 }
 </style>

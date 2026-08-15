@@ -24,7 +24,7 @@ const chartOption = computed(() => ({
     },
     legend: {
         orient: 'vertical',
-        right: 10,
+        left: '60%',
         top: 'center',
         textStyle: {
             fontSize: 12
@@ -34,8 +34,8 @@ const chartOption = computed(() => ({
         {
             name: '股票数量',
             type: 'pie',
-            radius: ['30%', '65%'],
-            center: ['38%', '50%'],
+            radius: ['40%', '75%'],
+            center: ['37%', '50%'],
             avoidLabelOverlap: false,
             itemStyle: {
                 borderRadius: 8,
