@@ -21,7 +21,7 @@
             </div>
 
             <!-- 热门概念 -->
-            <TopConcepts :data="topConceptsData"/>
+            <TopConcepts :data="topConceptsData" :concepts="allConcepts"/>
         </div>
     </div>
 </template>
@@ -44,6 +44,7 @@ const loading = ref(true)
 const regionData = ref([])
 const groupData = ref([])
 const topConceptsData = ref([])
+const allConcepts = ref([])
 const overviewStats = ref({})
 
 onMounted(async () => {
@@ -58,6 +59,7 @@ onMounted(async () => {
         regionData.value = calculateRegionStats(stocks)
         groupData.value = calculateGroupStats(groups, concepts)
         topConceptsData.value = calculateTopConcepts(concepts, 10)
+        allConcepts.value = concepts
         overviewStats.value = calculateOverviewStats(stocks, concepts, groups, regionData.value)
     } catch (error) {
         console.error('Error loading statistic data:', error)

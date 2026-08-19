@@ -69,16 +69,20 @@ export function calculateGroupStats(groups, concepts) {
 
 /**
  * 获取热门概念 TOP N
+ * @param {Array} concepts - 概念列表
+ * @param {number} topN - 返回数量 (-1 表示返回全部)
  */
 export function calculateTopConcepts(concepts, topN = 10) {
-    return concepts
+    const sorted = concepts
         .map(concept => ({
             name: concept.name,
             value: concept.stocks?.length || 0
         }))
         .filter(item => item.value > 0)
         .sort((a, b) => b.value - a.value)
-        .slice(0, topN)
+
+    // 如果 topN 为 -1, 返回全部; 否则返回前 topN 个
+    return topN === -1 ? sorted : sorted.slice(0, topN)
 }
 
 /**
