@@ -18,6 +18,22 @@ const currentTabKey = computed({
 })
 const hasTabs = computed(() => tabStore.tabs.length > 0)
 const scrollPositions = computed(() => tabStore.scrollPositions)
+const tabSortOrder = computed({
+    get: () => tabStore.tabSortOrder,
+    set: (value) => {
+        tabStore.tabSortOrder = value
+    }
+})
+
+// 根据排序状态返回显示用的标签列表
+const displayTabs = computed(() => {
+    if (tabStore.tabSortOrder === 'desc') {
+        // 最新的在顶部 - 反转数组
+        return [...tabStore.tabs].reverse()
+    }
+    // 最新的在底部 - 保持原序
+    return tabStore.tabs
+})
 
 // 生成标签页的唯一 key
 const getTabKey = (route) => {
@@ -73,18 +89,27 @@ const closeTab = (tab) => {
     // 清除该标签页的滚动位置记录
     delete tabStore.scrollPositions[tab.key]
 
-    // 如果关闭的是当前标签页, 切换到其他标签页
+    // 只有当关闭的是当前激活的标签时, 才处理跳转
     if (tab.key === tabStore.currentTabKey) {
+        // 如果还有其它标签, 切换到前一个标签
         if (tabStore.tabs.length > 0) {
-            // 切换到前一个或后一个标签页
             const newIndex = Math.max(0, index - 1)
             const newTab = tabStore.tabs[newIndex]
             tabStore.currentTabKey = newTab.key
             router.push(newTab.path)
         } else {
-            // 没有标签页了, 跳转到股票列表
+            // 没有标签了, 清空 currentTabKey
             tabStore.currentTabKey = ''
-            router.push('/stocks')
+
+            // 根据当前页面类型决定跳转逻辑
+            if (route.path.startsWith('/stock/')) {
+                // 股票详情页 -> 跳转到股票列表
+                router.push('/stocks')
+            } else if (route.path.startsWith('/concept/')) {
+                // 概念详情页 -> 跳转到概念列表
+                router.push('/concepts')
+            }
+            // 非详情页 -> 保持当前页面, 不跳转
         }
     }
 }
@@ -115,10 +140,15 @@ const switchTab = async (tab) => {
 // 监听路由变化, 自动添加标签页
 watch(
     () => route.path,
-    () => {
+    (newPath) => {
+        const isDetailPage = newPath.startsWith('/stock/') || newPath.startsWith('/concept/')
+
         // 只为股票详情和概念详情页添加标签页
-        if (route.path.startsWith('/stock/') || route.path.startsWith('/concept/')) {
+        if (isDetailPage) {
             addTab(route)
+        } else {
+            // 离开详情页时, 清空 currentTabKey, 让所有标签变为非选中状态
+            tabStore.currentTabKey = ''
         }
     },
     { immediate: true }
@@ -171,6 +201,21 @@ const clearAllTabs = () => {
     tabStore.tabs = []
     tabStore.currentTabKey = ''
     tabStore.scrollPositions = {}
+
+    // 根据当前页面类型决定跳转逻辑
+    if (route.path.startsWith('/stock/')) {
+        // 股票详情页 -> 跳转到股票列表
+        router.push('/stocks')
+    } else if (route.path.startsWith('/concept/')) {
+        // 概念详情页 -> 跳转到概念列表
+        router.push('/concepts')
+    }
+    // 非详情页 -> 保持当前页面, 不跳转
+}
+
+// 切换标签页排序方式
+const toggleTabSortOrder = () => {
+    tabStore.tabSortOrder = tabStore.tabSortOrder === 'desc' ? 'asc' : 'desc'
 }
 </script>
 
@@ -227,12 +272,25 @@ const clearAllTabs = () => {
             <aside v-if="route.path !== '/home'" class="tab-sidebar">
                 <ElScrollbar class="tab-scrollbar">
                     <div class="tab-list">
-                        <!-- 清空按钮 -->
-                        <div v-if="tabs.length > 0" class="clear-all-btn" @click="clearAllTabs">
-                            <span class="clear-all-text">清 空</span>
+                        <!-- 控制按钮区域 -->
+                        <div v-if="tabs.length > 0" class="tab-controls">
+                            <!-- 清空按钮 -->
+                            <div class="clear-all-btn" @click="clearAllTabs">
+                                <span class="clear-all-text">清 空</span>
+                            </div>
+                            <!-- 排序切换按钮 -->
+                            <div class="sort-toggle-btn" @click="toggleTabSortOrder" :title="tabSortOrder === 'desc' ? 'DESC' : 'ASC'">
+                                <svg v-if="tabSortOrder === 'desc'" class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14M5 12l7 7 7-7"/>
+                                </svg>
+                                <svg v-else class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 19V5M5 12l7-7 7 7"/>
+                                </svg>
+                            </div>
                         </div>
+                        <!-- 标签列表 -->
                         <div
-                            v-for="tab in tabs"
+                            v-for="tab in displayTabs"
                             :key="tab.key"
                             :class="['tab-item', { active: currentTabKey === tab.key }]"
                             @click="switchTab(tab)"
@@ -418,8 +476,16 @@ body {
     min-height: 100%;
 }
 
+/* 控制按钮区域 */
+.tab-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
 /* 清空所有标签按钮 */
 .clear-all-btn {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -475,6 +541,32 @@ body {
     color: #999;
     font-size: 13px;
     padding: 40px 20px;
+}
+
+/* 排序切换按钮 */
+.sort-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    min-height: 40px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.sort-toggle-btn:hover {
+    border-color: #667eea;
+    background: #f5f5ff;
+}
+
+.sort-icon {
+    width: 20px;
+    height: 20px;
+    color: #667eea;
 }
 
 .tab-item {

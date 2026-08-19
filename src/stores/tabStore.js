@@ -8,11 +8,14 @@ export const useTabStore = defineStore('tabs', () => {
     const currentTabKey = ref('')
     // 每个标签页的滚动位置
     const scrollPositions = ref({})
+    // 标签页排序方式: 'desc' - 最新的在顶部, 'asc' - 最新的在底部
+    const tabSortOrder = ref('desc')
 
     return {
         tabs,
         currentTabKey,
-        scrollPositions
+        scrollPositions,
+        tabSortOrder
     }
 }, {
     // 持久化配置
@@ -21,6 +24,6 @@ export const useTabStore = defineStore('tabs', () => {
         // 使用 LocalStorage 持久化
         storage: localStorage,
         // 需要持久化的字段
-        paths: ['tabs', 'currentTabKey', 'scrollPositions']
+        paths: ['tabs', 'currentTabKey', 'scrollPositions', 'tabSortOrder']
     }
 })
