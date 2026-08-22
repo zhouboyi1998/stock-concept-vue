@@ -6,6 +6,7 @@ import Statistics from '../components/statistics/Statistics.vue'
 import EarthGlobe from '../components/globe/EarthGlobe.vue'
 import StockDetail from '../components/stock/StockDetail.vue'
 import ConceptDetail from '../components/concept/ConceptDetail.vue'
+import SearchPage from '../components/search/SearchPage.vue'
 
 const routes = [
     {
@@ -46,6 +47,11 @@ const routes = [
         path: '/concept/:name',
         name: 'ConceptDetail',
         component: ConceptDetail
+    },
+    {
+        path: '/search',
+        name: 'Search',
+        component: SearchPage
     }
 ]
 

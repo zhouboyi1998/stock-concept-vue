@@ -184,6 +184,11 @@ const goToHome = () => {
     router.push('/home')
 }
 
+// 导航到搜索页面
+const goToSearch = () => {
+    router.push('/search')
+}
+
 // 计算需要缓存的路由
 const cachedViews = computed(() => {
     return tabStore.tabs.map(tab => {
@@ -225,8 +230,14 @@ const toggleTabSortOrder = () => {
         <nav class="navbar">
             <div class="nav-brand" @click="goToHome">股票概念库</div>
             <div class="nav-links">
-                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group' && route.path !== '/statistics' && route.path !== '/home'" class="back-btn" @click="goBack">
+                <button v-if="route.path !== '/stocks' && route.path !== '/concepts' && route.path !== '/concept-group' && route.path !== '/statistics' && route.path !== '/search' && route.path !== '/home'" class="back-btn" @click="goBack">
                     返回
+                </button>
+                <button
+                    :class="['nav-btn', { active: route.path === '/search' }]"
+                    @click="goToSearch"
+                >
+                    全站搜索
                 </button>
                 <button
                     :class="['nav-btn', { active: route.path === '/stocks' || route.path.startsWith('/stock/') }]"
@@ -256,7 +267,7 @@ const toggleTabSortOrder = () => {
         </nav>
 
         <!-- 主容器 -->
-        <div :class="['main-container', { 'home-page': route.path === '/home' }]">
+        <div :class="['main-container', { 'home-page': route.path === '/home', 'search-page-container': route.path === '/search' }]">
             <!-- 路由视图 (使用 Element Plus 滚动条) -->
             <ElScrollbar class="content-scrollbar">
                 <main class="main-content">
@@ -269,7 +280,7 @@ const toggleTabSortOrder = () => {
             </ElScrollbar>
 
             <!-- 右侧标签页栏 -->
-            <aside v-if="route.path !== '/home'" class="tab-sidebar">
+            <aside v-if="route.path !== '/home' && route.path !== '/search'" class="tab-sidebar">
                 <ElScrollbar class="tab-scrollbar">
                     <div class="tab-list">
                         <!-- 控制按钮区域 -->
@@ -429,6 +440,15 @@ body {
 }
 
 .main-container.home-page .main-content {
+    padding: 0;
+}
+
+/* 搜索页面样式 */
+.main-container.search-page-container .content-scrollbar {
+    padding: 0;
+}
+
+.main-container.search-page-container .main-content {
     padding: 0;
 }
 

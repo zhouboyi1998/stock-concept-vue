@@ -70,6 +70,91 @@ export async function loadGroups() {
 }
 
 /**
+ * 递归提取板块中的所有概念名称
+ */
+function extractAllConcepts(group, parentPath = []) {
+    const results = []
+
+    // 添加当前层级的概念
+    if (group.concept && Array.isArray(group.concept)) {
+        group.concept.forEach(conceptName => {
+            results.push({
+                name: conceptName,
+                path: [...parentPath, group.name].filter(Boolean).join(' / '),
+                groupName: group.name
+            })
+        })
+    }
+
+    // 递归处理子分组
+    if (group.subgroup && Array.isArray(group.subgroup)) {
+        group.subgroup.forEach(subgroup => {
+            const subResults = extractAllConcepts(subgroup, [...parentPath, group.name])
+            results.push(...subResults)
+        })
+    }
+
+    return results
+}
+
+/**
+ * 递归搜索匹配的节点 (板块或子板块)
+ */
+function searchMatchingNodes(node, keyword, parentPath = []) {
+    const results = []
+    const lowerKeyword = keyword.toLowerCase().trim()
+
+    // 检查当前节点是否匹配
+    const nodeNameMatch = node.name && node.name.toLowerCase().includes(lowerKeyword)
+    const nodePinyin = getFirstLetters(node.name)
+    const nodePinyinMatch = nodePinyin && nodePinyin.includes(lowerKeyword)
+
+    if (nodeNameMatch || nodePinyinMatch) {
+        // 找到匹配节点, 提取该节点下的所有概念
+        const concepts = extractAllConcepts(node, parentPath)
+        if (concepts.length > 0) {
+            results.push({
+                groupName: node.name,
+                concepts: concepts,
+                sort: node.sort || 999,
+                isSubgroup: parentPath.length > 0 // 标记是否为子分组
+            })
+        }
+    }
+
+    // 递归搜索子分组
+    if (node.subgroup && Array.isArray(node.subgroup)) {
+        node.subgroup.forEach(subgroup => {
+            const subResults = searchMatchingNodes(subgroup, keyword, [...parentPath, node.name])
+            results.push(...subResults)
+        })
+    }
+
+    return results
+}
+
+/**
+ * 搜索板块 (支持按板块名称、子板块名称、拼音首字母搜索, 返回匹配节点下的概念列表)
+ */
+export function searchGroups(groups, keyword) {
+    if (!keyword || !keyword.trim()) {
+        return []
+    }
+
+    const matchedGroups = []
+
+    groups.forEach(group => {
+        const results = searchMatchingNodes(group, keyword)
+        matchedGroups.push(...results)
+    })
+
+    // 按 sort 排序
+    matchedGroups.sort((a, b) => a.sort - b.sort)
+
+    return matchedGroups
+}
+
+/**
  * 搜索股票 (支持按名称、代码、拼音首字母搜索)
  */
 export function searchStocks(stocks, keyword) {
