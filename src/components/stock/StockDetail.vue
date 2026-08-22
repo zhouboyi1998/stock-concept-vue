@@ -2,7 +2,12 @@
     <div class="stock-detail" v-if="stock">
         <!-- 股票基本信息 -->
         <div class="stock-info">
-            <h1>{{ stock.name }}</h1>
+            <h1>
+                {{ stock.name }}
+                <span v-if="stock.alias && stock.alias.length > 0" class="stock-alias">
+                    （{{ stock.alias.join('、') }}）
+                </span>
+            </h1>
             <div class="stock-codes">
                 <span
                     v-for="(codeObj, index) in (stock.codes || [])"
@@ -12,6 +17,12 @@
                     {{ codeObj.region }}:{{ codeObj.code }}
                 </span>
             </div>
+
+            <!-- 关键词 -->
+            <div v-if="stock.keywords && stock.keywords.length > 0" class="stock-keywords">
+                {{ stock.keywords.join('、') }}
+            </div>
+
             <div class="stock-description">{{ stock.description }}</div>
 
             <!-- 备注信息 -->
@@ -134,6 +145,15 @@ const goToStockDetailByName = (name) => {
     color: #667eea;
     margin-bottom: 12px;
     font-size: 32px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stock-alias {
+    font-size: 32px;
+    font-weight: bold;
 }
 
 .stock-code {
@@ -152,6 +172,16 @@ const goToStockDetailByName = (name) => {
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 16px;
+}
+
+.stock-keywords {
+    font-size: 14px;
+    color: #999;
+    background: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    line-height: 1.6;
 }
 
 .stock-description {

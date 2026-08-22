@@ -155,7 +155,7 @@ export function searchGroups(groups, keyword) {
 }
 
 /**
- * 搜索股票 (支持按名称、代码、拼音首字母搜索)
+ * 搜索股票 (支持按名称、别名、代码、关键词、拼音首字母搜索)
  */
 export function searchStocks(stocks, keyword) {
     if (!keyword || !keyword.trim()) {
@@ -165,11 +165,46 @@ export function searchStocks(stocks, keyword) {
     const lowerKeyword = keyword.toLowerCase().trim()
     return stocks.filter(stock => {
         // 匹配股票名称
-        if (stock.name && stock.name.toLowerCase().includes(lowerKeyword)) {
-            return true
+        if (stock.name) {
+            if (stock.name.toLowerCase().includes(lowerKeyword)) {
+                return true
+            }
+            // 匹配股票名称的拼音首字母
+            const firstLetters = getFirstLetters(stock.name)
+            if (firstLetters && firstLetters.includes(lowerKeyword)) {
+                return true
+            }
         }
 
-        // 匹配股票代码 (支持数组)
+        // 匹配股票别名
+        if (stock.alias && Array.isArray(stock.alias) && stock.alias.length > 0) {
+            for (const aliasName of stock.alias) {
+                if (aliasName && aliasName.toLowerCase().includes(lowerKeyword)) {
+                    return true
+                }
+                // 匹配股票别名的拼音首字母
+                const aliasFirstLetters = getFirstLetters(aliasName)
+                if (aliasFirstLetters && aliasFirstLetters.includes(lowerKeyword)) {
+                    return true
+                }
+            }
+        }
+
+        // 匹配股票关键词
+        if (stock.keywords && Array.isArray(stock.keywords) && stock.keywords.length > 0) {
+            for (const keywordItem of stock.keywords) {
+                if (keywordItem && keywordItem.toLowerCase().includes(lowerKeyword)) {
+                    return true
+                }
+                // 匹配股票关键词的拼音首字母
+                const keywordFirstLetters = getFirstLetters(keywordItem)
+                if (keywordFirstLetters && keywordFirstLetters.includes(lowerKeyword)) {
+                    return true
+                }
+            }
+        }
+
+        // 匹配股票代码
         const codes = stock.codes || []
         for (const codeObj of codes) {
             if (codeObj.region && codeObj.code) {
@@ -180,20 +215,12 @@ export function searchStocks(stocks, keyword) {
             }
         }
 
-        // 匹配股票名称的拼音首字母
-        if (stock.name) {
-            const firstLetters = getFirstLetters(stock.name)
-            if (firstLetters && firstLetters.includes(lowerKeyword)) {
-                return true
-            }
-        }
-
         return false
     })
 }
 
 /**
- * 搜索概念 (支持按名称、别名、拼音首字母搜索)
+ * 搜索概念 (支持按名称、别名、关键词、拼音首字母搜索)
  */
 export function searchConcepts(concepts, keyword) {
     if (!keyword || !keyword.trim()) {
@@ -204,8 +231,15 @@ export function searchConcepts(concepts, keyword) {
     return concepts.filter(concept => {
         try {
             // 匹配概念名称
-            if (concept.name && concept.name.toLowerCase().includes(lowerKeyword)) {
-                return true
+            if (concept.name) {
+                if (concept.name.toLowerCase().includes(lowerKeyword)) {
+                    return true
+                }
+                // 匹配概念名称的拼音首字母
+                const firstLetters = getFirstLetters(concept.name)
+                if (firstLetters && firstLetters.includes(lowerKeyword)) {
+                    return true
+                }
             }
 
             // 匹配概念别名
@@ -214,28 +248,28 @@ export function searchConcepts(concepts, keyword) {
                     if (alias && alias.toLowerCase().includes(lowerKeyword)) {
                         return true
                     }
-                }
-            }
-
-            // 匹配概念名称的拼音首字母
-            if (concept.name) {
-                const firstLetters = getFirstLetters(concept.name)
-                if (firstLetters.includes(lowerKeyword)) {
-                    return true
-                }
-            }
-
-            // 匹配别名的拼音首字母
-            if (concept.alias && Array.isArray(concept.alias) && concept.alias.length > 0) {
-                for (const alias of concept.alias) {
-                    if (alias) {
-                        const aliasFirstLetters = getFirstLetters(alias)
-                        if (aliasFirstLetters.includes(lowerKeyword)) {
-                            return true
-                        }
+                    // 匹配概念别名的拼音首字母
+                    const aliasFirstLetters = getFirstLetters(alias)
+                    if (aliasFirstLetters && aliasFirstLetters.includes(lowerKeyword)) {
+                        return true
                     }
                 }
             }
+
+            // 匹配概念关键词
+            if (concept.keywords && Array.isArray(concept.keywords) && concept.keywords.length > 0) {
+                for (const keyword of concept.keywords) {
+                    if (keyword && keyword.toLowerCase().includes(lowerKeyword)) {
+                        return true
+                    }
+                    // 匹配概念关键词的拼音首字母
+                    const keywordFirstLetters = getFirstLetters(keyword)
+                    if (keywordFirstLetters && keywordFirstLetters.includes(lowerKeyword)) {
+                        return true
+                    }
+                }
+            }
+
         } catch (error) {
             console.error('Error searching concept:', concept.name, error)
         }

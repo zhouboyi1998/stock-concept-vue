@@ -8,6 +8,12 @@
                     （{{ concept.alias.join('、') }}）
                 </span>
             </h1>
+
+            <!-- 关键词 -->
+            <div v-if="concept.keywords && concept.keywords.length > 0" class="concept-keywords">
+                {{ concept.keywords.join('、') }}
+            </div>
+
             <div class="concept-description">{{ concept.description }}</div>
 
             <!-- 备注信息 -->
@@ -249,6 +255,16 @@ const goToStockDetail = (name) => {
     font-size: 16px;
     line-height: 1.8;
     margin-bottom: 16px;
+}
+
+.concept-keywords {
+    font-size: 14px;
+    color: #999;
+    background: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    line-height: 1.6;
 }
 
 .concept-remarks {
