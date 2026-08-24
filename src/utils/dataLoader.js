@@ -359,7 +359,49 @@ export function getRelatedConcepts(concepts, conceptName) {
         return []
     }
 
-    return concept.related
-        .map(name => getConceptByName(concepts, name))
-        .filter(c => c !== undefined)
+    return concept.related.map(name => {
+        const relatedConcept = getConceptByName(concepts, name)
+        if (relatedConcept) {
+            // 存在文件, 返回完整信息
+            return {
+                ...relatedConcept,
+                exists: true
+            }
+        } else {
+            // 不存在文件, 只返回名称
+            return {
+                name: name,
+                exists: false
+            }
+        }
+    })
+}
+
+/**
+ * 获取关联股票的详细信息列表
+ */
+export function getRelatedStocks(stocks, stockName) {
+    const stock = getStockByName(stocks, stockName)
+    if (!stock || !stock.related) {
+        return []
+    }
+
+    return stock.related.map(item => {
+        const relatedStock = getStockByName(stocks, item.name)
+        if (relatedStock) {
+            // 存在文件, 返回完整信息
+            return {
+                ...relatedStock,
+                relation: item.relation,
+                exists: true
+            }
+        } else {
+            // 不存在文件, 只返回名称和关系
+            return {
+                name: item.name,
+                relation: item.relation,
+                exists: false
+            }
+        }
+    })
 }

@@ -118,11 +118,14 @@
                     :key="relatedConcept.name"
                     class="concept-item-wrapper"
                 >
-                    <div class="concept-item" @click="goToRelatedConcept(relatedConcept.name)">
+                    <div
+                        :class="['concept-item', { 'disabled': !relatedConcept.exists }]"
+                        @click="relatedConcept.exists && goToRelatedConcept(relatedConcept.name)"
+                    >
                         <span class="concept-name">{{ relatedConcept.name }}</span>
-                        <span class="stock-count">{{ relatedConcept.stocks?.length || 0 }} 只股票</span>
+                        <span v-if="relatedConcept.exists" class="stock-count">{{ relatedConcept.stocks?.length || 0 }} 只股票</span>
                     </div>
-                    <div v-if="relatedConcept.stocks && relatedConcept.stocks.length > 0" class="concept-stocks">
+                    <div v-if="relatedConcept.exists && relatedConcept.stocks && relatedConcept.stocks.length > 0" class="concept-stocks">
                         <span
                             v-for="stockItem in relatedConcept.stocks"
                             :key="stockItem.name"
@@ -327,6 +330,21 @@ const goToStockDetail = (name) => {
 .concept-item:hover {
     background: #e3f2fd;
     transform: translateX(4px);
+}
+
+.concept-item.disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+    background: #f9f9f9;
+}
+
+.concept-item.disabled:hover {
+    background: #f9f9f9;
+    transform: none;
+}
+
+.concept-item.disabled .concept-name {
+    color: #999 !important;
 }
 
 .concept-item-wrapper {

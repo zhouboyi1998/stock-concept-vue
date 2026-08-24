@@ -63,11 +63,20 @@
         </div>
 
         <!-- 关联股票 -->
-        <div v-if="stock.related && stock.related.length > 0" class="stock-related-section">
-            <h2>关联股票（{{ stock.related.length }}）</h2>
+        <div v-if="relatedStocks.length > 0" class="stock-related-section">
+            <h2>关联股票（{{ relatedStocks.length }}）</h2>
             <div class="related-list">
-                <div v-for="(item, index) in stock.related" :key="index" class="related-item">
-                    <span class="related-name" @click="goToStockDetailByName(item.name)">{{ item.name }}</span>
+                <div
+                    v-for="(item, index) in relatedStocks"
+                    :key="index"
+                    :class="['related-item', { 'disabled': !item.exists }]"
+                >
+                    <span
+                        class="related-name"
+                        @click="item.exists && goToStockDetailByName(item.name)"
+                    >
+                        {{ item.name }}
+                    </span>
                     <span class="related-relation">{{ item.relation }}</span>
                 </div>
             </div>
@@ -83,7 +92,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getStockByName, loadStocks } from '../../utils/dataLoader'
+import { getStockByName, getRelatedStocks, loadStocks } from '../../utils/dataLoader'
 
 // 组件名称, 用于 keep-alive 缓存
 const __name = 'StockDetail'
@@ -91,26 +100,34 @@ const __name = 'StockDetail'
 const route = useRoute()
 const router = useRouter()
 const stock = ref(null)
+const stocks = ref([])
+const relatedStocks = ref([])
 
 // 加载股票详情的函数
 const loadStockDetail = async (name) => {
-    const stocks = await loadStocks()
-    stock.value = getStockByName(stocks, name)
+    const stocksData = await loadStocks()
+    stocks.value = stocksData
+    stock.value = getStockByName(stocksData, name)
+
+    if (stock.value) {
+        // 获取关联股票
+        relatedStocks.value = getRelatedStocks(stocksData, name)
+    }
 }
 
 // 首次挂载时加载数据
-onMounted(() => {
+onMounted(async () => {
     const name = decodeURIComponent(route.params.name)
-    loadStockDetail(name)
+    await loadStockDetail(name)
 })
 
 // 监听路由参数变化, 重新加载数据
 watch(
     () => route.params.name,
-    (newName) => {
+    async (newName) => {
         if (newName) {
             const name = decodeURIComponent(newName)
-            loadStockDetail(name)
+            await loadStockDetail(name)
         }
     }
 )
@@ -264,6 +281,26 @@ const goToStockDetailByName = (name) => {
     transform: translateX(4px);
 }
 
+.related-item.disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+    background: #f9f9f9;
+}
+
+.related-item.disabled:hover {
+    background: #f9f9f9;
+    transform: none;
+}
+
+.related-item.disabled .related-name {
+    color: #999 !important;
+    cursor: not-allowed !important;
+}
+
+.related-item.disabled .related-relation {
+    color: #999 !important;
+}
+
 .related-name {
     color: #667eea;
     font-weight: bold;
@@ -273,11 +310,11 @@ const goToStockDetailByName = (name) => {
 
 .related-name:hover {
     color: #764ba2;
-    text-decoration: underline;
 }
 
 .related-relation {
     color: #333;
+    font-weight: bold;
 }
 
 .concept-list {
