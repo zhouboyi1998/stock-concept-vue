@@ -35,7 +35,7 @@
                     v-for="stock in relatedStocks"
                     :key="stock.name"
                     class="stock-item"
-                    @click="goToStockDetail(stock.name)"
+                    @click="goToStockDetailHandler(stock.name, stock.codes && stock.codes.length > 0 ? stock.codes[0].code : null)"
                 >
                     <div class="stock-header">
                         <span class="stock-name">{{ stock.name }}</span>
@@ -120,7 +120,7 @@
                 >
                     <div
                         :class="['concept-item', { 'disabled': !relatedConcept.exists }]"
-                        @click="relatedConcept.exists && goToRelatedConcept(relatedConcept.name)"
+                        @click="relatedConcept.exists && goToConceptDetailHandler(relatedConcept.name)"
                     >
                         <span class="concept-name">{{ relatedConcept.name }}</span>
                         <span v-if="relatedConcept.exists" class="stock-count">{{ relatedConcept.stocks?.length || 0 }} 只股票</span>
@@ -130,7 +130,7 @@
                             v-for="stockItem in relatedConcept.stocks"
                             :key="stockItem.name"
                             class="stock-tag"
-                            @click.stop="goToStockDetailByName(stockItem.name)"
+                            @click.stop="goToStockDetailHandler(stockItem.name, stockItem.code)"
                         >
                             {{ stockItem.name }}
                         </span>
@@ -150,6 +150,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getConceptByName, getConceptStockDetails, getRelatedConcepts, loadConcepts, loadStocks } from '../../utils/dataLoader'
+import { goToStockDetail, goToConceptDetail } from '../../utils/navigation'
 
 // 组件名称, 用于 keep-alive 缓存
 const __name = 'ConceptDetail'
@@ -202,25 +203,14 @@ watch(
     }
 )
 
-// 跳转到关联概念
-const goToRelatedConcept = (name) => {
-    router.push(`/concept/${ encodeURIComponent(name) }`)
-}
-
-// 根据股票代码获取股票名称
-const getStockNameByCode = (code) => {
-    const stock = stocks.value.find(s => s.code === code)
-    return stock ? stock.name : code
-}
-
-// 根据股票名称跳转到股票详情
-const goToStockDetailByName = (name) => {
-    router.push(`/stock/${ encodeURIComponent(name) }`)
+// 跳转到概念详情
+const goToConceptDetailHandler = (name) => {
+    goToConceptDetail(router, name)
 }
 
 // 跳转到股票详情
-const goToStockDetail = (name) => {
-    router.push(`/stock/${ encodeURIComponent(name) }`)
+const goToStockDetailHandler = (name, code) => {
+    goToStockDetail(router, stocks.value, name, code)
 }
 </script>
 

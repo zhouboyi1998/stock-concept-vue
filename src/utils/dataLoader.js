@@ -314,11 +314,27 @@ export function getConceptStockDetails(concepts, stocks, conceptName) {
     return concept.stocks
         .map(stockItem => {
             const stockName = stockItem.name
+            const stockCode = stockItem.code
 
-            // 先尝试按名称查找, 如果找不到再尝试按代码查找 (兼容旧数据)
-            let stock = getStockByName(stocks, stockName)
-            if (!stock) {
-                stock = getStockByCode(stocks, stockName)
+            // 先按名称查找所有匹配的股票
+            const matchedStocks = stocks.filter(stock => stock.name === stockName)
+
+            let stock = null
+
+            // 如果只有一个同名股票, 直接返回
+            if (matchedStocks.length === 1) {
+                stock = matchedStocks[0]
+            }
+            // 如果有多个同名股票, 且文件中标记了股票代码, 则使用股票代码精确匹配
+            else if (matchedStocks.length > 1 && stockCode) {
+                stock = matchedStocks.find(s => {
+                    const codes = s.codes || []
+                    return codes.some(codeObj => codeObj.code === stockCode)
+                })
+            }
+            // 如果有多个同名股票但没有股票代码, 无法确定是哪个股票, 按不存在处理
+            else if (matchedStocks.length > 1) {
+                stock = null
             }
 
             // 概念中给股票的入选理由
@@ -387,7 +403,30 @@ export function getRelatedStocks(stocks, stockName) {
     }
 
     return stock.related.map(item => {
-        const relatedStock = getStockByName(stocks, item.name)
+        const relatedStockName = item.name
+        const relatedStockCode = item.code
+
+        // 先按名称查找所有匹配的股票
+        const matchedStocks = stocks.filter(s => s.name === relatedStockName)
+
+        let relatedStock = null
+
+        // 如果只有一个同名股票, 直接返回
+        if (matchedStocks.length === 1) {
+            relatedStock = matchedStocks[0]
+        }
+        // 如果有多个同名股票, 且文件中标记了股票代码, 则使用股票代码精确匹配
+        else if (matchedStocks.length > 1 && relatedStockCode) {
+            relatedStock = matchedStocks.find(s => {
+                const codes = s.codes || []
+                return codes.some(codeObj => codeObj.code === relatedStockCode)
+            })
+        }
+        // 如果有多个同名股票但没有股票代码, 无法确定是哪个股票, 按不存在处理
+        else if (matchedStocks.length > 1) {
+            relatedStock = null
+        }
+
         if (relatedStock) {
             // 存在文件, 返回完整信息
             return {
@@ -398,7 +437,7 @@ export function getRelatedStocks(stocks, stockName) {
         } else {
             // 不存在文件, 只返回名称和关系
             return {
-                name: item.name,
+                name: relatedStockName,
                 relation: item.relation,
                 exists: false
             }

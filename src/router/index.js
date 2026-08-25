@@ -29,6 +29,11 @@ const routes = [
         component: StockDetail
     },
     {
+        path: '/stock/:name/:identifier',
+        name: 'StockDetailWithIdentifier',
+        component: StockDetail
+    },
+    {
         path: '/concepts',
         name: 'ConceptList',
         component: ConceptList

@@ -35,9 +35,9 @@
                 <div v-show="expandedSections.stocks" class="result-list">
                     <div
                         v-for="stock in stockResults"
-                        :key="stock.name"
+                        :key="`${stock.name}-${(stock.codes || []).map(c => `${c.region}:${c.code}`).join('-')}`"
                         class="result-item"
-                        @click="goToStock(stock)"
+                        @click="goToStockDetailHandler(stock)"
                     >
                         <div class="item-info">
                             <span class="item-name">{{ stock.name }}</span>
@@ -75,7 +75,7 @@
                         v-for="concept in conceptResults"
                         :key="concept.name"
                         class="result-item"
-                        @click="goToConcept(concept)"
+                        @click="goToConceptDetailHandler(concept)"
                     >
                         <div class="item-info">
                             <span class="item-name">{{ concept.name }}</span>
@@ -105,7 +105,7 @@
                         v-for="concept in group.concepts"
                         :key="concept.name"
                         :class="['result-item', { 'disabled': !isConceptExists(concept.name) }]"
-                        @click="goToConceptByName(concept.name)"
+                        @click="isConceptExists(concept.name) && goToConceptDetailHandler(concept)"
                     >
                         <div class="item-info">
                             <span class="item-name">{{ concept.name }}</span>
@@ -138,6 +138,7 @@ import { Search, TrendCharts, Collection, ArrowRight, FolderOpened, CaretTop, Ca
 import { loadStocks, loadConcepts, loadGroups, searchStocks, searchConcepts, searchGroups } from '../../utils/dataLoader'
 import { ElMessage } from 'element-plus'
 import { useSearchStore } from '../../stores/searchStore'
+import { goToStockDetail, goToConceptDetail } from '../../utils/navigation'
 
 const router = useRouter()
 const searchStore = useSearchStore()
@@ -218,22 +219,13 @@ const conceptResults = ref([])
 const groupResults = ref([])
 
 // 跳转到股票详情
-const goToStock = (stock) => {
-    router.push(`/stock/${ encodeURIComponent(stock.name) }`)
+const goToStockDetailHandler = (stock) => {
+    goToStockDetail(router, allStocks.value, stock.name, stock.codes && stock.codes.length > 0 ? stock.codes[0].code : null)
 }
 
 // 跳转到概念详情
-const goToConcept = (concept) => {
-    router.push(`/concept/${ encodeURIComponent(concept.name) }`)
-}
-
-// 根据概念名称跳转
-const goToConceptByName = (conceptName) => {
-    // 如果概念不存在, 不允许跳转
-    if (!conceptNames.value.has(conceptName)) {
-        return
-    }
-    router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+const goToConceptDetailHandler = (concept) => {
+    goToConceptDetail(router, concept.name)
 }
 
 // 判断概念是否存在

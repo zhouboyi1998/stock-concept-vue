@@ -44,7 +44,7 @@
                     v-for="concept in stock.concepts"
                     :key="concept.name"
                     class="concept-item"
-                    @click="goToConceptDetail(concept.name)"
+                    @click="isConceptExists(concept.name) && goToConceptDetailHandler(concept.name)"
                 >
                     <div class="concept-header">
                         <span class="concept-name">{{ concept.name }}</span>
@@ -73,7 +73,7 @@
                 >
                     <span
                         class="related-name"
-                        @click="item.exists && goToStockDetailByName(item.name)"
+                        @click="item.exists && goToStockDetailHandler(item.name, item.codes && item.codes.length > 0 ? item.codes[0].code : null)"
                     >
                         {{ item.name }}
                     </span>
@@ -92,7 +92,8 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getStockByName, getRelatedStocks, loadStocks } from '../../utils/dataLoader'
+import { getRelatedStocks, loadStocks, loadConcepts } from '../../utils/dataLoader'
+import { goToStockDetail, goToConceptDetail } from '../../utils/navigation'
 
 // 组件名称, 用于 keep-alive 缓存
 const __name = 'StockDetail'
@@ -102,12 +103,58 @@ const router = useRouter()
 const stock = ref(null)
 const stocks = ref([])
 const relatedStocks = ref([])
+const conceptNames = ref(new Set()) // 存储所有存在的概念名称集合
 
 // 加载股票详情的函数
-const loadStockDetail = async (name) => {
-    const stocksData = await loadStocks()
+const loadStockDetail = async (name, identifier) => {
+    const [stocksData, conceptsData] = await Promise.all([
+        loadStocks(),
+        loadConcepts()
+    ])
+
     stocks.value = stocksData
-    stock.value = getStockByName(stocksData, name)
+
+    // 将所有概念名称存入 Set, 用于快速查找
+    conceptNames.value = new Set(conceptsData.map(concept => concept.name))
+
+    // 先按名称查找所有匹配的股票
+    const matchedStocks = stocksData.filter(stock => stock.name === name)
+
+    if (matchedStocks.length === 0) {
+        // 没有找到
+        stock.value = null
+    } else if (matchedStocks.length === 1) {
+        // 只有一个同名股票, 直接返回
+        stock.value = matchedStocks[0]
+    } else {
+        // 有多个同名股票
+        if (!identifier) {
+            // 没有 identifier, 不允许访问
+            console.error(`有多个同名股票 "${ name }", 必须指定股票代码`)
+            stock.value = null
+            return
+        }
+
+        // 解析 identifier: region-code
+        const parts = identifier.split('-')
+        if (parts.length !== 2) {
+            console.error(`Invalid identifier format: ${ identifier }`)
+            stock.value = null
+            return
+        }
+
+        const [region, code] = parts
+
+        // 用 region 和 code 精确匹配
+        stock.value = matchedStocks.find(s => {
+            const codes = s.codes || []
+            return codes.some(codeObj => codeObj.region === region && codeObj.code === code)
+        })
+
+        if (!stock.value) {
+            console.error(`No stock found for identifier: ${ identifier }`)
+        }
+    }
 
     if (stock.value) {
         // 获取关联股票
@@ -118,28 +165,34 @@ const loadStockDetail = async (name) => {
 // 首次挂载时加载数据
 onMounted(async () => {
     const name = decodeURIComponent(route.params.name)
-    await loadStockDetail(name)
+    const identifier = route.params.identifier
+    await loadStockDetail(name, identifier)
 })
 
 // 监听路由参数变化, 重新加载数据
 watch(
-    () => route.params.name,
-    async (newName) => {
+    () => [route.params.name, route.params.identifier],
+    async ([newName, newIdentifier]) => {
         if (newName) {
             const name = decodeURIComponent(newName)
-            await loadStockDetail(name)
+            await loadStockDetail(name, newIdentifier)
         }
     }
 )
 
-// 跳转到概念详情页
-const goToConceptDetail = (conceptName) => {
-    router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+// 跳转到概念详情
+const goToConceptDetailHandler = (conceptName) => {
+    goToConceptDetail(router, conceptName)
 }
 
-// 根据股票名称跳转到股票详情
-const goToStockDetailByName = (name) => {
-    router.push(`/stock/${ encodeURIComponent(name) }`)
+// 判断概念是否存在
+const isConceptExists = (conceptName) => {
+    return conceptNames.value.has(conceptName)
+}
+
+// 跳转到股票详情
+const goToStockDetailHandler = (name, code) => {
+    goToStockDetail(router, stocks.value, name, code)
 }
 </script>
 

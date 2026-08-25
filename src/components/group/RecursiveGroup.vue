@@ -18,7 +18,7 @@
                     v-for="conceptName in group.concept"
                     :key="conceptName"
                     :class="['concept-item', { 'disabled': !isConceptExists(conceptName) }]"
-                    @click.stop="goToConcept(conceptName)"
+                    @click.stop="isConceptExists(conceptName) && goToConceptHandler(conceptName)"
                 >
                     {{ conceptName }}
                 </div>
@@ -45,6 +45,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadConcepts } from '../../utils/dataLoader'
+import { goToConceptDetail } from '../../utils/navigation'
 
 const props = defineProps({
     group: {
@@ -83,14 +84,9 @@ const isConceptExists = (conceptName) => {
     return props.conceptNames.has(conceptName)
 }
 
-// 跳转到概念
-const goToConcept = (conceptName) => {
-    // 如果概念不存在, 不允许跳转
-    if (!isConceptExists(conceptName)) {
-        return
-    }
-
-    router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+// 跳转到概念详情
+const goToConceptHandler = (conceptName) => {
+    goToConceptDetail(router, conceptName)
     emit('navigate')
 }
 

@@ -16,9 +16,9 @@
         <div class="stock-items">
             <div
                 v-for="stock in filteredStocks"
-                :key="stock.name"
+                :key="`${stock.name}-${(stock.codes || []).map(c => `${c.region}:${c.code}`).join('-')}`"
                 class="stock-item"
-                @click="goToStockDetail(stock.name)"
+                @click="goToStockDetailHandler(stock.name, stock.codes && stock.codes.length > 0 ? stock.codes[0].code : null)"
             >
                 <div class="stock-header">
                     <span class="stock-name">{{ stock.name }}</span>
@@ -39,8 +39,8 @@
           <span
               v-for="concept in stock.concepts"
               :key="concept.name"
-              class="concept-tag"
-              @click.stop="goToConceptDetail(concept.name)"
+              :class="['concept-tag', { 'disabled': !isConceptExists(concept.name) }]"
+              @click.stop="isConceptExists(concept.name) && goToConceptDetailHandler(concept.name)"
           >
             {{ concept.name }}
           </span>
@@ -58,18 +58,26 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { loadStocks, searchStocks } from '../../utils/dataLoader'
+import { loadStocks, loadConcepts, searchStocks } from '../../utils/dataLoader'
+import { goToStockDetail, goToConceptDetail } from '../../utils/navigation'
 
 const router = useRouter()
 const stocks = ref([])
 const searchKeyword = ref('')
 const filteredStocks = ref([])
+const conceptNames = ref(new Set()) // 存储所有存在的概念名称集合
 
 // 加载股票数据
 onMounted(async () => {
-    const data = await loadStocks()
-    stocks.value = data
-    filteredStocks.value = data
+    const [stocksData, conceptsData] = await Promise.all([
+        loadStocks(),
+        loadConcepts()
+    ])
+    stocks.value = stocksData
+    filteredStocks.value = stocksData
+
+    // 将所有概念名称存入 Set, 用于快速查找
+    conceptNames.value = new Set(conceptsData.map(concept => concept.name))
 })
 
 // 处理搜索
@@ -77,14 +85,19 @@ const handleSearch = () => {
     filteredStocks.value = searchStocks(stocks.value, searchKeyword.value)
 }
 
-// 跳转到股票详情页
-const goToStockDetail = (name) => {
-    router.push(`/stock/${ encodeURIComponent(name) }`)
+// 跳转到股票详情
+const goToStockDetailHandler = (name, code) => {
+    goToStockDetail(router, stocks.value, name, code)
 }
 
-// 跳转到概念详情页
-const goToConceptDetail = (conceptName) => {
-    router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+// 跳转到概念详情
+const goToConceptDetailHandler = (conceptName) => {
+    goToConceptDetail(router, conceptName)
+}
+
+// 判断概念是否存在
+const isConceptExists = (conceptName) => {
+    return conceptNames.value.has(conceptName)
 }
 </script>
 
@@ -195,6 +208,19 @@ h1 {
 .concept-tag:hover {
     background: #667eea;
     color: white;
+}
+
+/* 概念不存在时的禁用样式 */
+.concept-tag.disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.concept-tag.disabled:hover {
+    background: #f0f0f0;
+    color: #999;
 }
 
 .no-result {

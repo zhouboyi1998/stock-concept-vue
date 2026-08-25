@@ -38,7 +38,9 @@ const displayTabs = computed(() => {
 // 生成标签页的唯一 key
 const getTabKey = (route) => {
     if (route.path.startsWith('/stock/')) {
-        return `stock_${ route.params.name }`
+        const name = route.params.name
+        const identifier = route.params.identifier
+        return identifier ? `stock_${ name }_${ identifier }` : `stock_${ name }`
     } else if (route.path.startsWith('/concept/')) {
         return `concept_${ route.params.name }`
     }
@@ -96,7 +98,7 @@ const closeTab = (tab) => {
             const newIndex = Math.max(0, index - 1)
             const newTab = tabStore.tabs[newIndex]
             tabStore.currentTabKey = newTab.key
-            router.push(newTab.path)
+            router.push(newTab.fullPath)
         } else {
             // 没有标签了, 清空 currentTabKey
             tabStore.currentTabKey = ''
@@ -126,7 +128,7 @@ const switchTab = async (tab) => {
 
     // 切换到新标签页
     tabStore.currentTabKey = tab.key
-    await router.push(tab.path)
+    await router.push(tab.fullPath)
 
     // 恢复新标签页的滚动位置
     setTimeout(() => {
@@ -139,13 +141,16 @@ const switchTab = async (tab) => {
 
 // 监听路由变化, 自动添加标签页
 watch(
-    () => route.path,
-    (newPath) => {
-        const isDetailPage = newPath.startsWith('/stock/') || newPath.startsWith('/concept/')
+    () => route.fullPath,
+    (newFullPath) => {
+        const isDetailPage = newFullPath.startsWith('/stock/') || newFullPath.startsWith('/concept/')
 
         // 只为股票详情和概念详情页添加标签页
         if (isDetailPage) {
             addTab(route)
+            // 更新当前激活的 tab key
+            const key = getTabKey(route)
+            tabStore.currentTabKey = key
         } else {
             // 离开详情页时, 清空 currentTabKey, 让所有标签变为非选中状态
             tabStore.currentTabKey = ''

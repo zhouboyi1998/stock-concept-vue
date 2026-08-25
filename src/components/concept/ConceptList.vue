@@ -18,7 +18,7 @@
                 v-for="concept in filteredConcepts"
                 :key="concept.name"
                 class="concept-item"
-                @click="goToConceptDetail(concept.name)"
+                @click="goToConceptDetailHandler(concept.name)"
             >
                 <div class="concept-header">
                     <span class="concept-name">{{ concept.name }}</span>
@@ -31,8 +31,8 @@
                     <span
                         v-for="relatedName in concept.related"
                         :key="relatedName"
-                        class="related-tag"
-                        @click.stop="goToConceptDetail(relatedName)"
+                        :class="['related-tag', { 'disabled': !isConceptExists(relatedName) }]"
+                        @click.stop="isConceptExists(relatedName) && goToConceptDetailHandler(relatedName)"
                     >
                         {{ relatedName }}
                     </span>
@@ -51,17 +51,22 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadConcepts, searchConcepts } from '../../utils/dataLoader'
+import { goToConceptDetail } from '../../utils/navigation'
 
 const router = useRouter()
 const concepts = ref([])
 const searchKeyword = ref('')
 const filteredConcepts = ref([])
+const conceptNames = ref(new Set()) // 存储所有存在的概念名称集合
 
 // 加载概念数据
 onMounted(async () => {
     const data = await loadConcepts()
     concepts.value = data
     filteredConcepts.value = data
+
+    // 将所有概念名称存入 Set, 用于快速查找
+    conceptNames.value = new Set(data.map(concept => concept.name))
 })
 
 // 处理搜索
@@ -69,9 +74,14 @@ const handleSearch = () => {
     filteredConcepts.value = searchConcepts(concepts.value, searchKeyword.value)
 }
 
-// 跳转到概念详情页
-const goToConceptDetail = (conceptName) => {
-    router.push(`/concept/${ encodeURIComponent(conceptName) }`)
+// 跳转到概念详情
+const goToConceptDetailHandler = (conceptName) => {
+    goToConceptDetail(router, conceptName)
+}
+
+// 判断概念是否存在
+const isConceptExists = (conceptName) => {
+    return conceptNames.value.has(conceptName)
 }
 </script>
 
@@ -176,6 +186,19 @@ h1 {
 .related-tag:hover {
     background: #667eea;
     color: white;
+}
+
+/* 概念不存在时的禁用样式 */
+.related-tag.disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.related-tag.disabled:hover {
+    background: #f0f0f0;
+    color: #999;
 }
 
 .no-result {
