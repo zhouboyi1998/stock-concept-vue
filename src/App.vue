@@ -120,9 +120,9 @@ const closeTab = (tab) => {
 const switchTab = async (tab) => {
     // 保存当前标签页的滚动位置
     if (tabStore.currentTabKey) {
-        const mainContent = document.querySelector('.main-content')
-        if (mainContent) {
-            tabStore.scrollPositions[tabStore.currentTabKey] = mainContent.scrollTop
+        const scrollbarWrap = document.querySelector('.content-scrollbar .el-scrollbar__wrap')
+        if (scrollbarWrap) {
+            tabStore.scrollPositions[tabStore.currentTabKey] = scrollbarWrap.scrollTop
         }
     }
 
@@ -132,9 +132,9 @@ const switchTab = async (tab) => {
 
     // 恢复新标签页的滚动位置
     setTimeout(() => {
-        const mainContent = document.querySelector('.main-content')
-        if (mainContent && tabStore.scrollPositions[tab.key]) {
-            mainContent.scrollTop = tabStore.scrollPositions[tab.key]
+        const scrollbarWrap = document.querySelector('.content-scrollbar .el-scrollbar__wrap')
+        if (scrollbarWrap && tabStore.scrollPositions[tab.key]) {
+            scrollbarWrap.scrollTop = tabStore.scrollPositions[tab.key]
         }
     }, 50)
 }
@@ -226,6 +226,17 @@ const clearAllTabs = () => {
 // 切换标签页排序方式
 const toggleTabSortOrder = () => {
     tabStore.tabSortOrder = tabStore.tabSortOrder === 'desc' ? 'asc' : 'desc'
+}
+
+// 回到顶部
+const scrollToTop = () => {
+    const scrollbarWrap = document.querySelector('.content-scrollbar .el-scrollbar__wrap')
+    if (scrollbarWrap) {
+        scrollbarWrap.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        })
+    }
 }
 </script>
 
@@ -320,6 +331,13 @@ const toggleTabSortOrder = () => {
                     </div>
                 </ElScrollbar>
             </aside>
+        </div>
+
+        <!-- 回到顶部按钮 -->
+        <div v-if="route.path !== '/home'" class="back-to-top" @click="scrollToTop" title="回到顶部">
+            <svg class="back-to-top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
         </div>
     </div>
 </template>
@@ -647,5 +665,34 @@ body {
 
 .tab-item.active .tab-close:hover {
     color: #ff6b6b;
+}
+
+/* 回到顶部按钮 */
+.back-to-top {
+    position: fixed;
+    right: 254px;
+    bottom: 30px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+    z-index: 999;
+}
+
+.back-to-top:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.back-to-top-icon {
+    width: 24px;
+    height: 24px;
+    color: white;
 }
 </style>
