@@ -2,10 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useSearchStore = defineStore('search', () => {
-    // 搜索关键词
+    // 全站搜索关键词
     const searchKeyword = ref('')
 
-    // 展开/收缩状态
+    // 搜索内容展开/收缩状态
     const expandedSections = ref({
         stocks: true,
         concepts: true,

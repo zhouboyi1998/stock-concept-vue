@@ -7,7 +7,7 @@
             <input
                 v-model="searchKeyword"
                 type="text"
-                placeholder="搜索概念名称、别名或拼音首字母..."
+                placeholder="搜索概念名称、别名、关键词..."
                 @input="handleSearch"
             />
         </div>
@@ -48,25 +48,38 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadConcepts, searchConcepts } from '../../utils/dataLoader'
 import { goToConceptDetail } from '../../utils/navigation'
+import { useConceptListStore } from '../../stores/conceptListStore'
 
 const router = useRouter()
+const conceptListStore = useConceptListStore()
 const concepts = ref([])
-const searchKeyword = ref('')
 const filteredConcepts = ref([])
 const conceptNames = ref(new Set()) // 存储所有存在的概念名称集合
+
+// 使用 store 中的搜索关键词 (自动持久化)
+const searchKeyword = computed({
+    get: () => conceptListStore.searchKeyword,
+    set: (value) => conceptListStore.setSearchKeyword(value)
+})
 
 // 加载概念数据
 onMounted(async () => {
     const data = await loadConcepts()
     concepts.value = data
-    filteredConcepts.value = data
 
     // 将所有概念名称存入 Set, 用于快速查找
     conceptNames.value = new Set(data.map(concept => concept.name))
+
+    // 恢复搜索状态: 如果有搜索关键词, 执行搜索
+    if (conceptListStore.searchKeyword) {
+        filteredConcepts.value = searchConcepts(concepts.value, conceptListStore.searchKeyword)
+    } else {
+        filteredConcepts.value = data
+    }
 })
 
 // 处理搜索

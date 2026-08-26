@@ -1,12 +1,20 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { computed, watch, onMounted } from 'vue'
+import { computed, watch, onMounted, ref } from 'vue'
 import { ElScrollbar } from 'element-plus'
+import html2canvas from 'html2canvas'
 import { useTabStore } from './stores/tabStore'
+import { useSearchStore } from './stores/searchStore'
+import { useStockListStore } from './stores/stockListStore'
+import { useConceptListStore } from './stores/conceptListStore'
+import ConfirmModal from './components/common/ConfirmModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 const tabStore = useTabStore()
+const searchStore = useSearchStore()
+const stockListStore = useStockListStore()
+const conceptListStore = useConceptListStore()
 
 // 使用 store 中的状态 (自动持久化)
 const tabs = computed(() => tabStore.tabs)
@@ -238,6 +246,119 @@ const scrollToTop = () => {
         })
     }
 }
+
+// 截屏弹窗状态
+const showScreenshotModal = ref(false)
+
+// 截屏功能 - 显示确认弹窗
+const captureScreenshot = () => {
+    showScreenshotModal.value = true
+}
+
+// 确认截屏
+const handleScreenshotConfirm = async () => {
+    try {
+        // 1. 获取滚动容器和内容区
+        const scrollbarWrap = document.querySelector('.content-scrollbar .el-scrollbar__wrap')
+        const mainContent = document.querySelector('.main-content')
+        const tabSidebar = document.querySelector('.tab-sidebar')
+
+        if (!scrollbarWrap || !mainContent) {
+            alert('无法找到页面内容')
+            return
+        }
+
+        // 2. 保存当前滚动位置
+        const currentScrollTop = scrollbarWrap.scrollTop
+
+        // 3. 滚动到顶部
+        scrollbarWrap.scrollTop = 0
+
+        // 4. 等待滚动完成和 DOM 更新
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // 5. 如果有标签栏, 临时隐藏它以保证左右空白对称
+        let sidebarWasVisible = false
+        if (tabSidebar) {
+            sidebarWasVisible = tabSidebar.style.display !== 'none'
+            if (sidebarWasVisible) {
+                tabSidebar.style.display = 'none'
+                // 等待 DOM 更新, 让内容重新布局
+                await new Promise(resolve => setTimeout(resolve, 50))
+            }
+        }
+
+        // 6. 设置最大高度 (10000px)
+        const maxHeight = 10000
+        const actualHeight = Math.min(mainContent.scrollHeight, maxHeight)
+
+        // 7. 使用 html2canvas 截图
+        const canvas = await html2canvas(mainContent, {
+            width: mainContent.scrollWidth,
+            height: actualHeight,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: mainContent.scrollWidth,
+            windowHeight: actualHeight,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            scale: 2 // 提高清晰度
+        })
+
+        // 8. 恢复标签栏显示
+        if (tabSidebar && sidebarWasVisible) {
+            tabSidebar.style.display = ''
+        }
+
+        // 9. 恢复原来的滚动位置
+        scrollbarWrap.scrollTop = currentScrollTop
+
+        // 10. 转换为图片并下载
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+
+        // 生成文件名
+        let fileName = ''
+
+        // 规则1: 股票详情页、概念详情页 - 使用名称
+        if (route.path.startsWith('/stock/')) {
+            fileName = decodeURIComponent(route.params.name)
+        } else if (route.path.startsWith('/concept/')) {
+            fileName = decodeURIComponent(route.params.name)
+        }
+        // 规则2: 股票列表页、概念列表页、全站搜索页 - 如果有搜索内容, 使用搜索内容
+        else if (route.path === '/search' && searchStore.searchKeyword && searchStore.searchKeyword.trim()) {
+            fileName = searchStore.searchKeyword.trim()
+        } else if (route.path === '/stocks' && stockListStore.searchKeyword && stockListStore.searchKeyword.trim()) {
+            fileName = stockListStore.searchKeyword.trim()
+        } else if (route.path === '/concepts' && conceptListStore.searchKeyword && conceptListStore.searchKeyword.trim()) {
+            fileName = conceptListStore.searchKeyword.trim()
+        }
+        // 规则3: 其他情况 - 使用页面类型
+        else {
+            fileName =
+                route.path === '/search' ? '全站搜索' :
+                    route.path === '/stocks' ? '股票列表' :
+                        route.path === '/concepts' ? '概念列表' :
+                            route.path === '/concept-group' ? '板块列表' :
+                                route.path === '/statistics' ? '统计信息' :
+                                    '页面'
+        }
+
+        const now = new Date()
+        const timestamp = `${ now.getFullYear() }${ String(now.getMonth() + 1).padStart(2, '0') }${ String(now.getDate()).padStart(2, '0') }_${ String(now.getHours()).padStart(2, '0') }${ String(now.getMinutes()).padStart(2, '0') }${ String(now.getSeconds()).padStart(2, '0') }`
+        const filename = `${ fileName }_${ timestamp }.png`
+
+        link.download = filename
+        link.href = image
+        link.click()
+
+    } catch (error) {
+        console.error('截图失败:', error)
+        alert('截图失败')
+    }
+}
 </script>
 
 <template>
@@ -333,12 +454,38 @@ const scrollToTop = () => {
             </aside>
         </div>
 
+        <!-- 截屏按钮 -->
+        <div v-if="route.path !== '/home'" class="screenshot-btn" @click="captureScreenshot" title="截屏">
+            <svg class="screenshot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <!-- 相机机身 -->
+                <rect x="3" y="6" width="18" height="14" rx="2" ry="2"/>
+                <!-- 镜头 -->
+                <circle cx="12" cy="13" r="3.5"/>
+                <!-- 闪光灯 -->
+                <path d="M7 6V4h10v2"/>
+                <!-- 快门按钮 -->
+                <circle cx="17" cy="9" r="1" fill="currentColor"/>
+            </svg>
+        </div>
+
         <!-- 回到顶部按钮 -->
         <div v-if="route.path !== '/home'" class="back-to-top" @click="scrollToTop" title="回到顶部">
             <svg class="back-to-top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 19V5M5 12l7-7 7 7"/>
             </svg>
         </div>
+
+        <!-- 截屏确认弹窗 -->
+        <ConfirmModal
+            :visible="showScreenshotModal"
+            title="截屏确认"
+            message="是否截取当前页面？将自动滚动到页面顶部并生成截图。"
+            type="info"
+            confirmButtonText="确定"
+            cancelButtonText="取消"
+            @confirm="handleScreenshotConfirm"
+            @close="showScreenshotModal = false"
+        />
     </div>
 </template>
 
@@ -665,6 +812,35 @@ body {
 
 .tab-item.active .tab-close:hover {
     color: #ff6b6b;
+}
+
+/* 截屏按钮 */
+.screenshot-btn {
+    position: fixed;
+    right: 254px;
+    bottom: 90px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+    z-index: 999;
+}
+
+.screenshot-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.screenshot-icon {
+    width: 24px;
+    height: 24px;
+    color: white;
 }
 
 /* 回到顶部按钮 */

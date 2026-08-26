@@ -7,7 +7,7 @@
             <input
                 v-model="searchKeyword"
                 type="text"
-                placeholder="搜索股票名称、代码或拼音首字母..."
+                placeholder="搜索股票名称、代码、别名、关键词..."
                 @input="handleSearch"
             />
         </div>
@@ -56,16 +56,23 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadStocks, loadConcepts, searchStocks } from '../../utils/dataLoader'
 import { goToStockDetail, goToConceptDetail } from '../../utils/navigation'
+import { useStockListStore } from '../../stores/stockListStore'
 
 const router = useRouter()
+const stockListStore = useStockListStore()
 const stocks = ref([])
-const searchKeyword = ref('')
 const filteredStocks = ref([])
 const conceptNames = ref(new Set()) // 存储所有存在的概念名称集合
+
+// 使用 store 中的搜索关键词 (自动持久化)
+const searchKeyword = computed({
+    get: () => stockListStore.searchKeyword,
+    set: (value) => stockListStore.setSearchKeyword(value)
+})
 
 // 加载股票数据
 onMounted(async () => {
@@ -74,10 +81,16 @@ onMounted(async () => {
         loadConcepts()
     ])
     stocks.value = stocksData
-    filteredStocks.value = stocksData
 
     // 将所有概念名称存入 Set, 用于快速查找
     conceptNames.value = new Set(conceptsData.map(concept => concept.name))
+
+    // 恢复搜索状态: 如果有搜索关键词, 执行搜索
+    if (stockListStore.searchKeyword) {
+        filteredStocks.value = searchStocks(stocks.value, stockListStore.searchKeyword)
+    } else {
+        filteredStocks.value = stocksData
+    }
 })
 
 // 处理搜索
