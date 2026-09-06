@@ -2,12 +2,15 @@
     <div class="stock-detail" v-if="stock">
         <!-- 股票基本信息 -->
         <div class="stock-info">
-            <h1>
-                {{ stock.name }}
-                <span v-if="stock.alias && stock.alias.length > 0" class="stock-alias">
-                    （{{ stock.alias.join('、') }}）
+            <h1>{{ stock.name }}</h1>
+
+            <!-- 别名 -->
+            <div v-if="stock.alias && stock.alias.length > 0" class="stock-alias">
+                <span v-for="(alias, index) in stock.alias" :key="index" class="alias-tag">
+                    {{ alias }}
                 </span>
-            </h1>
+            </div>
+
             <div class="stock-codes">
                 <span
                     v-for="(codeObj, index) in (stock.codes || [])"
@@ -215,15 +218,30 @@ const goToStockDetailHandler = (name, code) => {
     color: #667eea;
     margin-bottom: 12px;
     font-size: 32px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
 }
 
+/* 别名标签 */
 .stock-alias {
-    font-size: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.alias-tag {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border-radius: 16px;
+    font-size: 18px;
     font-weight: bold;
+    transition: all 0.2s;
+}
+
+.alias-tag:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
 }
 
 .stock-code {

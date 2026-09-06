@@ -2,12 +2,14 @@
     <div class="concept-detail" v-if="concept">
         <!-- 概念基本信息 -->
         <div class="concept-info">
-            <h1>
-                {{ concept.name }}
-                <span v-if="concept.alias && concept.alias.length > 0" class="concept-alias">
-                    （{{ concept.alias.join('、') }}）
+            <h1>{{ concept.name }}</h1>
+
+            <!-- 别名 -->
+            <div v-if="concept.alias && concept.alias.length > 0" class="concept-alias">
+                <span v-for="(alias, index) in concept.alias" :key="index" class="alias-tag">
+                    {{ alias }}
                 </span>
-            </h1>
+            </div>
 
             <!-- 关键词 -->
             <div v-if="concept.keywords && concept.keywords.length > 0" class="concept-keywords">
@@ -231,17 +233,32 @@ const goToStockDetailHandler = (name, code) => {
 
 .concept-info h1 {
     color: #764ba2;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     font-size: 32px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
 }
 
+/* 别名标签 */
 .concept-alias {
-    font-size: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.alias-tag {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(118, 75, 162, 0.1);
+    color: #764ba2;
+    border-radius: 16px;
+    font-size: 18px;
     font-weight: bold;
+    transition: all 0.2s;
+}
+
+.alias-tag:hover {
+    background: rgba(118, 75, 162, 0.2);
+    transform: translateY(-2px);
 }
 
 .concept-description {
