@@ -51,6 +51,8 @@ const getTabKey = (route) => {
         return identifier ? `stock_${ name }_${ identifier }` : `stock_${ name }`
     } else if (route.path.startsWith('/concept/')) {
         return `concept_${ route.params.name }`
+    } else if (route.path.startsWith('/group-detail/')) {
+        return `group_${ route.params.name }`
     }
     return route.path
 }
@@ -63,6 +65,9 @@ const getTabTitle = (route) => {
     } else if (route.path.startsWith('/concept/')) {
         // 概念名称可能包含特殊字符, 需要解码
         return `概念: ${ decodeURIComponent(route.params.name) }`
+    } else if (route.path.startsWith('/group-detail/')) {
+        // 板块名称可能包含特殊字符, 需要解码
+        return `板块: ${ decodeURIComponent(route.params.name) }`
     }
     return route.meta.title || route.path
 }
@@ -118,6 +123,9 @@ const closeTab = (tab) => {
             } else if (route.path.startsWith('/concept/')) {
                 // 概念详情页 -> 跳转到概念列表
                 router.push('/concepts')
+            } else if (route.path.startsWith('/group-detail/')) {
+                // 板块详情页 -> 跳转到板块列表
+                router.push('/concept-group')
             }
             // 非详情页 -> 保持当前页面, 不跳转
         }
@@ -151,9 +159,9 @@ const switchTab = async (tab) => {
 watch(
     () => route.fullPath,
     (newFullPath) => {
-        const isDetailPage = newFullPath.startsWith('/stock/') || newFullPath.startsWith('/concept/')
+        const isDetailPage = newFullPath.startsWith('/stock/') || newFullPath.startsWith('/concept/') || newFullPath.startsWith('/group-detail/')
 
-        // 只为股票详情和概念详情页添加标签页
+        // 为股票详情页、概念详情页、板块详情页添加标签页
         if (isDetailPage) {
             addTab(route)
             // 更新当前激活的 tab key
@@ -209,6 +217,8 @@ const cachedViews = computed(() => {
             return 'StockDetail'
         } else if (tab.key.startsWith('concept_')) {
             return 'ConceptDetail'
+        } else if (tab.key.startsWith('group_')) {
+            return 'GroupDetail'
         }
         return null
     }).filter(Boolean)
@@ -227,6 +237,9 @@ const clearAllTabs = () => {
     } else if (route.path.startsWith('/concept/')) {
         // 概念详情页 -> 跳转到概念列表
         router.push('/concepts')
+    } else if (route.path.startsWith('/group-detail/')) {
+        // 板块详情页 -> 跳转到板块列表
+        router.push('/concept-group')
     }
     // 非详情页 -> 保持当前页面, 不跳转
 }
@@ -242,7 +255,7 @@ const scrollToTop = () => {
     if (scrollbarWrap) {
         scrollbarWrap.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: 'auto'
         })
     }
 }
@@ -772,6 +785,7 @@ body {
     transition: all 0.2s;
     font-size: 13px;
     min-height: 40px;
+    font-weight: bold;
 }
 
 .tab-item:hover {

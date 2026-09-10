@@ -6,6 +6,7 @@ import Statistics from '../components/statistics/Statistics.vue'
 import EarthGlobe from '../components/globe/EarthGlobe.vue'
 import StockDetail from '../components/stock/StockDetail.vue'
 import ConceptDetail from '../components/concept/ConceptDetail.vue'
+import GroupDetail from '../components/group/GroupDetail.vue'
 import SearchPage from '../components/search/SearchPage.vue'
 
 const routes = [
@@ -42,6 +43,11 @@ const routes = [
         path: '/concept-group',
         name: 'ConceptGroup',
         component: ConceptGroup
+    },
+    {
+        path: '/group-detail/:name',
+        name: 'GroupDetail',
+        component: GroupDetail
     },
     {
         path: '/statistics',

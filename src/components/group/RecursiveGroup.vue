@@ -23,6 +23,19 @@
                     {{ conceptName }}
                 </div>
             </div>
+
+            <!-- 一级板块显示查看详情图标 -->
+            <span
+                v-if="depth === 0"
+                class="detail-icon"
+                @click.stop="goToGroupDetailHandler"
+                title="查看板块详情"
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </span>
         </div>
 
         <!-- 分组内容: 子分组列表 -->
@@ -87,6 +100,12 @@ const isConceptExists = (conceptName) => {
 // 跳转到概念详情
 const goToConceptHandler = (conceptName) => {
     goToConceptDetail(router, conceptName)
+    emit('navigate')
+}
+
+// 跳转到板块详情
+const goToGroupDetailHandler = () => {
+    router.push(`/group-detail/${ encodeURIComponent(props.group.name) }`)
     emit('navigate')
 }
 
@@ -201,5 +220,30 @@ const handleNavigate = () => {
     color: #999;
     transform: none;
     box-shadow: none;
+}
+
+/* 查看详情图标 */
+.detail-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 12px;
+    cursor: pointer;
+    color: #764ba2;
+    opacity: 0.6;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.detail-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.detail-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
 </style>
